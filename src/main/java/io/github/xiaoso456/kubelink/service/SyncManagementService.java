@@ -9,6 +9,7 @@ import io.github.xiaoso456.kubelink.domain.SyncInfo;
 import io.github.xiaoso456.kubelink.enums.SyncType;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.util.exception.CopyNotSupportedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,7 +37,7 @@ public class SyncManagementService {
     public void createOrUpdateSyncInfo(SyncInfo syncInfo) {
         removeSyncInfo(syncInfo.getId());
         idSyncInfoMap.put(syncInfo.getId(), syncInfo);
-        if(syncInfo.getAutoSync() && syncInfo.getEnable() && syncInfo.getSyncType() == SyncType.LOCAL_TO_POD){
+        if(syncInfo.getAutoSync() && syncInfo.getEnable() && syncInfo.getSyncType() == SyncType.FILE_LOCAL_TO_POD){
             File watchFile = new File(syncInfo.getSource());
             WatchMonitor watchMonitor = WatchMonitor.create(watchFile, WatchMonitor.EVENTS_ALL);
             watchMonitor.setWatcher(new Watcher() {
@@ -90,7 +91,7 @@ public class SyncManagementService {
         copy.setApiClient(apiClient);
         StopWatch stopWatch = StopWatch.create(UUID.fastUUID().toString());
         stopWatch.start();
-        if (syncInfo.getSyncType() == SyncType.LOCAL_TO_POD && syncInfo.getEnable()) {
+        if (syncInfo.getSyncType() == SyncType.FILE_LOCAL_TO_POD && syncInfo.getEnable()) {
             try {
                 copy.copyFileToPod(syncInfo.getNamespace(), syncInfo.getPod(), syncInfo.getContainer(), Paths.get(syncInfo.getSource()), Paths.get(syncInfo.getTarget()));
                 stopWatch.stop();
@@ -102,7 +103,7 @@ public class SyncManagementService {
             return;
         }
 
-        if(syncInfo.getSyncType() == SyncType.POD_TO_LOCAL && syncInfo.getEnable()){
+        if(syncInfo.getSyncType() == SyncType.FILE_POD_TO_LOCAL && syncInfo.getEnable()){
             if (syncInfo.getAutoSync()){
                 log.warn("Unsupported auto sync from pod to local, sync id [{}]",syncInfo.getId());
             }
@@ -111,6 +112,21 @@ public class SyncManagementService {
                 stopWatch.stop();
                 log.info("Sync id [{}] task success,cost [{}] ms", syncInfo.getId(), stopWatch.getTotalTimeMillis());
             } catch (ApiException | IOException e) {
+                log.error("sync id [{}] task failed", syncInfo.getId());
+                throw new RuntimeException(e);
+            }
+            return;
+        }
+
+        if(syncInfo.getSyncType() == SyncType.FOLDER_POD_TO_LOCAL && syncInfo.getEnable()){
+            if (syncInfo.getAutoSync()){
+                log.warn("Unsupported auto sync from pod to local, sync id [{}]",syncInfo.getId());
+            }
+            try {
+                copy.copyDirectoryFromPod(syncInfo.getNamespace(),syncInfo.getPod(),syncInfo.getContainer(), syncInfo.getSource(), Paths.get(syncInfo.getTarget()));
+                stopWatch.stop();
+                log.info("Sync id [{}] task success,cost [{}] ms", syncInfo.getId(), stopWatch.getTotalTimeMillis());
+            } catch (ApiException | IOException | CopyNotSupportedException e) {
                 log.error("sync id [{}] task failed", syncInfo.getId());
                 throw new RuntimeException(e);
             }

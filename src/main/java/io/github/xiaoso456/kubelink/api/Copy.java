@@ -479,7 +479,7 @@ public class Copy extends Exec {
 
     private void waitForDone() throws InterruptedException {
       while (true){
-        if(isDone()){
+        if(isDone() || proc.waitFor(1,TimeUnit.NANOSECONDS)){
           return;
         }
         Thread.sleep(100);
@@ -491,7 +491,8 @@ public class Copy extends Exec {
       long deadline = System.nanoTime() + remainingNanos;
       do {
         Thread.sleep(Math.min(TimeUnit.NANOSECONDS.toMillis(remainingNanos) + 1, 100));
-        if(isDone()){
+
+        if(isDone() || proc.waitFor(0,TimeUnit.NANOSECONDS)){
           return true;
         }
         remainingNanos = deadline - System.nanoTime();

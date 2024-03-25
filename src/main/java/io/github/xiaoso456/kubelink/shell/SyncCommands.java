@@ -35,10 +35,10 @@ public class SyncCommands {
 
     @Command(command = "add")
     public void syncAdd() throws IOException, ApiException {
-
+        // todo
     }
 
-    @Command(command = "start")
+    @Command(command = "all")
     public void sync() {
         List<SyncInfo> syncInfos = syncManagementService.listSyncInfo();
         for (SyncInfo syncInfo : syncInfos) {
