@@ -20,5 +20,16 @@
     "container": null,
     "source": "D:\\code\\project\\idea_project\\kube-link\\test.txt",
     "target": "/test.txt"
+  },
+  {
+    "id": "3",
+    "syncType": "POD_TO_LOCAL",
+    "autoSync": true,
+    "enable": true,
+    "namespace": "default",
+    "pod": "nginx-55dc7c8595-rrjbt",
+    "container": null,
+    "source": "/test.txt",
+    "target": "D:\\code\\project\\idea_project\\kube-link\\test2.txt"
   }
 ]

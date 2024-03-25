@@ -88,18 +88,35 @@ public class SyncManagementService {
         ApiClient apiClient = configManagementService.getApiClient();
         Copy copy = new Copy();
         copy.setApiClient(apiClient);
+        StopWatch stopWatch = StopWatch.create(UUID.fastUUID().toString());
+        stopWatch.start();
         if (syncInfo.getSyncType() == SyncType.LOCAL_TO_POD && syncInfo.getEnable()) {
             try {
-                StopWatch stopWatch = StopWatch.create(UUID.fastUUID().toString());
-                stopWatch.start();
                 copy.copyFileToPod(syncInfo.getNamespace(), syncInfo.getPod(), syncInfo.getContainer(), Paths.get(syncInfo.getSource()), Paths.get(syncInfo.getTarget()));
                 stopWatch.stop();
-                log.info("sync id [{}] task success,cost [{}] ms", syncInfo.getId(), stopWatch.getTotalTimeMillis());
+                log.info("Sync id [{}] task success,cost [{}] ms", syncInfo.getId(), stopWatch.getTotalTimeMillis());
+            } catch (ApiException | IOException e) {
+                log.error("Sync id [{}] task failed", syncInfo.getId());
+                throw new RuntimeException(e);
+            }
+            return;
+        }
+
+        if(syncInfo.getSyncType() == SyncType.POD_TO_LOCAL && syncInfo.getEnable()){
+            if (syncInfo.getAutoSync()){
+                log.warn("Unsupported auto sync from pod to local, sync id [{}]",syncInfo.getId());
+            }
+            try {
+                copy.copyFileFromPod(syncInfo.getNamespace(),syncInfo.getPod(),syncInfo.getContainer(), syncInfo.getSource(), Paths.get(syncInfo.getTarget()));
+                stopWatch.stop();
+                log.info("Sync id [{}] task success,cost [{}] ms", syncInfo.getId(), stopWatch.getTotalTimeMillis());
             } catch (ApiException | IOException e) {
                 log.error("sync id [{}] task failed", syncInfo.getId());
                 throw new RuntimeException(e);
             }
+            return;
         }
+
     }
 
 
