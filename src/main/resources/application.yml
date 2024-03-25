@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: kube-link
+server:
+  port: 15151
+kube:
+  link:
+    config:
+      directory: "configs/config"
+      default-active-file-name: "config"
+    sync:
+      file: "configs/sync-config/sync.json"
