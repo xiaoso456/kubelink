@@ -2,10 +2,12 @@ package io.github.xiaoso456.kubelink.service;
 
 
 import cn.hutool.core.util.StrUtil;
+import io.github.xiaoso456.kubelink.domain.ClusterConfig;
 import io.github.xiaoso456.kubelink.exception.LinkException;
 import io.github.xiaoso456.kubelink.utils.KubeApiUtils;
 import io.kubernetes.client.openapi.ApiClient;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -18,46 +20,33 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class ConfigManagementService {
 
-    private Map<String, String> nameConfigMap = new ConcurrentHashMap<>();
 
-    private String activeName;
+    @Autowired
+    private ClusterConfigService clusterConfigService;
+
+    private Long activeConfigId;
 
     private ApiClient apiClient;
 
-    public String getActiveName(){
-        return activeName;
-    }
-
-    public ApiClient getApiClient(){
-        return apiClient;
-    }
-
-    public List<String> getConfigNameList(){
-        return new ArrayList<>(nameConfigMap.keySet());
-    }
-
-    public void createOrUpdateConfig(String configName, String config) {
-        nameConfigMap.put(configName, config);
-    }
-
-    public boolean removeConfig(String configName) {
-        return nameConfigMap.remove(configName) != null;
-    }
-
-    public void activeConfig(String configName) throws LinkException {
-        String config = nameConfigMap.getOrDefault(configName, null);
+    public void activeConfig(Long configId) throws LinkException {
+        ClusterConfig clusterConfig = clusterConfigService.getById(configId);
+        String config = clusterConfig.getConfig();
         if (StrUtil.isBlank(config)) {
             throw new LinkException("configs is blank");
         }
         try {
             ApiClient client = KubeApiUtils.createApiClient(config);
             this.apiClient = client;
-            this.activeName = configName;
-            log.info("active configs:{}",activeName);
+            this.activeConfigId = configId;
+            log.info("active configs:{}",configId);
         } catch (IOException ioException) {
             log.error("create api client error", ioException);
             throw new LinkException(ioException);
         }
+    }
+
+    public ApiClient getApiClient() {
+        return apiClient;
     }
 
 }

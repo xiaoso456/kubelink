@@ -18,30 +18,30 @@ import java.util.Set;
 @Slf4j
 public class ConfigCommands {
 
-    @Autowired
-    private ConfigManagementService configManagementService;
-
-    @Command(command = "")
-    public String config(){
-        String info = "current active configs [{}]";
-        return StrUtil.format(info,configManagementService.getActiveName());
-    }
-
-    @Command(command = "list")
-    public List<String> configList() {
-        return configManagementService.getConfigNameList();
-    }
-
-    @Command(command = "use")
-    public String configUse(@Option(required = true) String configName) {
-        try {
-            configManagementService.activeConfig(configName);
-        } catch (LinkException e) {
-            log.error("change configs failed",e);
-            return e.getMessage();
-        }
-        String info = "configs change to [{}]";
-        return StrUtil.format(info,configName);
-
-    }
+    // @Autowired
+    // private ConfigManagementService configManagementService;
+    //
+    // @Command(command = "")
+    // public String config(){
+    //     String info = "current active configs [{}]";
+    //     return StrUtil.format(info,configManagementService.getActiveName());
+    // }
+    //
+    // @Command(command = "list")
+    // public List<String> configList() {
+    //     return configManagementService.getConfigNameList();
+    // }
+    //
+    // @Command(command = "use")
+    // public String configUse(@Option(required = true) String configName) {
+    //     try {
+    //         configManagementService.activeConfig(configName);
+    //     } catch (LinkException e) {
+    //         log.error("change configs failed",e);
+    //         return e.getMessage();
+    //     }
+    //     String info = "configs change to [{}]";
+    //     return StrUtil.format(info,configName);
+    //
+    // }
 }

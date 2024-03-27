@@ -20,14 +20,14 @@ import java.util.Set;
 public class ConnectCommands {
 
 
-    @Autowired
-    private ConfigManagementService configManagementService;
-
-    @Command(command = "")
-    public VersionInfo connect() throws IOException, ApiException {
-        ApiClient apiClient = configManagementService.getApiClient();
-        VersionApi versionApi = new VersionApi();
-        versionApi.setApiClient(apiClient);
-        return versionApi.getCode().execute();
-    }
+    // @Autowired
+    // private ConfigManagementService configManagementService;
+    //
+    // @Command(command = "")
+    // public VersionInfo connect() throws IOException, ApiException {
+    //     ApiClient apiClient = configManagementService.getApiClient();
+    //     VersionApi versionApi = new VersionApi();
+    //     versionApi.setApiClient(apiClient);
+    //     return versionApi.getCode().execute();
+    // }
 }

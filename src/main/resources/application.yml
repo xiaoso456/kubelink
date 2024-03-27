@@ -1,6 +1,9 @@
 spring:
   application:
     name: kube-link
+  datasource:
+    driver-class-name: org.sqlite.JDBC
+    url: jdbc:sqlite:configs/db/db
 server:
   port: 15151
 kube:
@@ -10,3 +13,8 @@ kube:
       default-active-file-name: "config"
     sync:
       file: "configs/sync-config/sync.json"
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
