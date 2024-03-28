@@ -35,6 +35,7 @@ public class SyncConfigService extends ServiceImpl<SyncConfigMapper, SyncConfig>
 
     @Autowired
     ConfigManagementService configManagementService;
+    
     private Map<Long, SyncConfig> idSyncConfigMap = new ConcurrentHashMap<>();
     private Map<Long, WatchMonitor> idWatchMonitor = new ConcurrentHashMap<>();
 

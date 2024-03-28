@@ -4,6 +4,7 @@ import io.github.xiaoso456.kubelink.domain.ClusterConfig;
 import io.github.xiaoso456.kubelink.exception.LinkException;
 import io.github.xiaoso456.kubelink.service.ClusterConfigService;
 import io.github.xiaoso456.kubelink.service.ConfigManagementService;
+import io.github.xiaoso456.kubelink.service.SyncConfigService;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.VersionInfo;
 import jakarta.ws.rs.PUT;
@@ -22,6 +23,9 @@ public class ClusterConfigController {
 
     @Autowired
     private ConfigManagementService configManagementService;
+
+    @Autowired
+    private SyncConfigService syncConfigService;
 
     @GetMapping("/{id}")
     public ClusterConfig get(@PathVariable Long id) {
@@ -56,6 +60,7 @@ public class ClusterConfigController {
 
     @PutMapping("/{id}/active")
     public void active(@PathVariable Long id) throws LinkException {
+        syncConfigService.clearAll();
         configManagementService.activeConfig(id);
     }
 

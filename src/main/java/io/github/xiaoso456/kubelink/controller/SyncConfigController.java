@@ -49,7 +49,7 @@ public class SyncConfigController {
         SyncConfig syncConfig = syncConfigService.getById(id);
         syncConfigService.syncOnly(syncConfig);
     }
-    
+
 
 
 }
