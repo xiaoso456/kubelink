@@ -10,7 +10,6 @@ import io.github.xiaoso456.kubelink.api.Copy;
 import io.github.xiaoso456.kubelink.domain.SyncConfig;
 
 import io.github.xiaoso456.kubelink.enums.SyncType;
-import io.github.xiaoso456.kubelink.exception.LinkException;
 import io.github.xiaoso456.kubelink.exception.runtime.LinkRuntimeException;
 import io.github.xiaoso456.kubelink.mapper.SyncConfigMapper;
 
@@ -36,12 +35,14 @@ public class SyncConfigService extends ServiceImpl<SyncConfigMapper, SyncConfig>
 
     @Autowired
     ConfigManagementService configManagementService;
-    private Map<Long, SyncConfig> idSyncInfoMap = new ConcurrentHashMap<>();
+    private Map<Long, SyncConfig> idSyncConfigMap = new ConcurrentHashMap<>();
     private Map<Long, WatchMonitor> idWatchMonitor = new ConcurrentHashMap<>();
 
-    public void createOrUpdateSyncTask(SyncConfig syncConfig) {
+    public void activeAutoSync(SyncConfig syncConfig) {
+
         removeSyncTask(syncConfig.getId());
-        idSyncInfoMap.put(syncConfig.getId(), syncConfig);
+        idSyncConfigMap.put(syncConfig.getId(), syncConfig);
+
         if(syncConfig.getAutoSync() && syncConfig.getEnable() && syncConfig.getSyncType() == SyncType.FILE_LOCAL_TO_POD){
             File watchFile = new File(syncConfig.getSource());
             WatchMonitor watchMonitor = WatchMonitor.create(watchFile, WatchMonitor.EVENTS_ALL);
@@ -49,13 +50,13 @@ public class SyncConfigService extends ServiceImpl<SyncConfigMapper, SyncConfig>
                 @Override
                 public void onCreate(WatchEvent<?> event, Path currentPath) {
                     log.info("sync id [{}], file create, start to sync.", syncConfig.getId());
-                    sync(syncConfig);
+                    syncOnly(syncConfig);
                 }
 
                 @Override
                 public void onModify(WatchEvent<?> event, Path currentPath) {
                     log.info("sync id [{}], file modify, start to sync.", syncConfig.getId());
-                    sync(syncConfig);
+                    syncOnly(syncConfig);
                 }
 
                 @Override
@@ -68,13 +69,14 @@ public class SyncConfigService extends ServiceImpl<SyncConfigMapper, SyncConfig>
                     log.error("watch id [{}] failed, please restart", syncConfig.getId());
                 }
             });
+
             watchMonitor.start();
             idWatchMonitor.put(syncConfig.getId(),watchMonitor);
         }
     }
 
     public boolean removeSyncTask(Long id) {
-        SyncConfig remove = idSyncInfoMap.remove(id);
+        SyncConfig remove = idSyncConfigMap.remove(id);
         WatchMonitor watchMonitor = idWatchMonitor.remove(id);
         if(watchMonitor != null){
             watchMonitor.close();
@@ -83,7 +85,7 @@ public class SyncConfigService extends ServiceImpl<SyncConfigMapper, SyncConfig>
     }
 
 
-    public void sync(SyncConfig syncConfig){
+    public void syncOnly(SyncConfig syncConfig){
         ApiClient apiClient = configManagementService.getApiClient();
         Copy copy = new Copy();
         copy.setApiClient(apiClient);
@@ -102,9 +104,6 @@ public class SyncConfigService extends ServiceImpl<SyncConfigMapper, SyncConfig>
         }
 
         if(syncConfig.getSyncType() == SyncType.FILE_POD_TO_LOCAL && syncConfig.getEnable()){
-            if (syncConfig.getAutoSync()){
-                log.warn("Unsupported auto sync from pod to local, sync id [{}]", syncConfig.getId());
-            }
             try {
                 copy.copyFileFromPod(syncConfig.getNamespace(), syncConfig.getPod(), syncConfig.getContainer(), syncConfig.getSource(), Paths.get(syncConfig.getTarget()));
                 stopWatch.stop();
@@ -117,9 +116,6 @@ public class SyncConfigService extends ServiceImpl<SyncConfigMapper, SyncConfig>
         }
 
         if(syncConfig.getSyncType() == SyncType.FOLDER_POD_TO_LOCAL && syncConfig.getEnable()){
-            if (syncConfig.getAutoSync()){
-                log.warn("Unsupported auto sync from pod to local, sync id [{}]", syncConfig.getId());
-            }
             try {
                 copy.copyDirectoryFromPod(syncConfig.getNamespace(), syncConfig.getPod(), syncConfig.getContainer(), syncConfig.getSource(), Paths.get(syncConfig.getTarget()));
                 stopWatch.stop();
@@ -131,6 +127,14 @@ public class SyncConfigService extends ServiceImpl<SyncConfigMapper, SyncConfig>
             return;
         }
 
+    }
+
+    public void clearAll(){
+        idSyncConfigMap.clear();
+        for(WatchMonitor watchMonitor:idWatchMonitor.values()){
+            watchMonitor.close();
+        }
+        idWatchMonitor.clear();
     }
 
 }

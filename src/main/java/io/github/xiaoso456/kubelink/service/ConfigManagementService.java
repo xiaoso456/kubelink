@@ -24,11 +24,15 @@ public class ConfigManagementService {
     @Autowired
     private ClusterConfigService clusterConfigService;
 
+    @Autowired
+    private SyncConfigService syncConfigService;
+
     private Long activeConfigId;
 
     private ApiClient apiClient;
 
     public void activeConfig(Long configId) throws LinkException {
+        syncConfigService.clearAll();
         ClusterConfig clusterConfig = clusterConfigService.getById(configId);
         String config = clusterConfig.getConfig();
         if (StrUtil.isBlank(config)) {

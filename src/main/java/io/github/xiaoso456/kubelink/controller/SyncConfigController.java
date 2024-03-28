@@ -44,5 +44,12 @@ public class SyncConfigController {
         return syncConfigService.removeById(id);
     }
 
+    @PostMapping("/{id}/sync-only")
+    public void syncOnly(@PathVariable Long id) {
+        SyncConfig syncConfig = syncConfigService.getById(id);
+        syncConfigService.syncOnly(syncConfig);
+    }
+    
+
 
 }
