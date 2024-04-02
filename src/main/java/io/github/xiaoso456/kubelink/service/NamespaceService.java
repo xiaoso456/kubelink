@@ -7,6 +7,7 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Namespace;
 import io.kubernetes.client.openapi.models.V1NamespaceList;
+import io.kubernetes.client.openapi.models.V1PodTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,20 @@ public class NamespaceService {
         try {
             V1NamespaceList namespaceList = coreV1Api.listNamespace().execute();
             return namespaceList.getItems();
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+
+    }
+
+    public List<V1PodTemplate> listPods(String namespace){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+
+        CoreV1Api coreV1Api = new CoreV1Api();
+        coreV1Api.setApiClient(apiClient);
+        try {
+            return coreV1Api.listNamespacedPodTemplate(namespace).execute().getItems();
         } catch (ApiException e) {
             throw new LinkRuntimeException(e);
         }
