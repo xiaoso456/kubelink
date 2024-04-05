@@ -4,6 +4,9 @@ spring:
   datasource:
     driver-class-name: org.sqlite.JDBC
     url: jdbc:sqlite:configs/db/db
+  web:
+    resources:
+      static-locations: file:resource
 server:
   port: 15151
 kube:

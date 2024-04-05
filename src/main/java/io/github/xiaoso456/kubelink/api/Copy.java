@@ -12,6 +12,12 @@ limitations under the License.
 */
 package io.github.xiaoso456.kubelink.api;
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.lang.UUID;
+import cn.hutool.extra.compress.CompressUtil;
+import cn.hutool.extra.compress.archiver.Archiver;
+import io.github.xiaoso456.kubelink.domain.SyncResponse;
+import io.github.xiaoso456.kubelink.exception.runtime.LinkRuntimeException;
 import io.kubernetes.client.Exec;
 import io.kubernetes.client.TreeNode;
 import io.kubernetes.client.openapi.ApiClient;
@@ -30,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
@@ -39,6 +46,7 @@ import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveOutputStream;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
@@ -348,12 +356,17 @@ public class Copy extends Exec {
           throws ApiException, IOException {
 
     try {
+      if (!isTarPresentInContainer(namespace, pod, container)) {
+        throw new CopyNotSupportedException("Tar is not present in the target container");
+      }
       int exit = copyFileToPodAsync(namespace, pod, container, srcPath, destPath).get();
       if (exit != 0) {
         throw new IOException("Failed to copy: " + exit);
       }
     } catch (InterruptedException | ExecutionException ex) {
       throw new IOException(ex);
+    } catch (CopyNotSupportedException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -409,6 +422,43 @@ public class Copy extends Exec {
 
       return new ProcessFuture(proc);
     }
+  }
+
+  public void copyDirectoryToPod(String namespace, String pod, String container, Path srcPath, Path destPath) throws IOException, ApiException {
+    String tempTarFilePath = "/tmp/" + UUID.fastUUID() + ".tar";
+    File tempSourceTarFile = new File(tempTarFilePath);
+
+
+    try (Archiver archiver = CompressUtil.createArchiver(Charset.defaultCharset(), ArchiveStreamFactory.TAR,tempSourceTarFile)){
+      archiver.add(srcPath.toFile());
+      archiver.finish();
+      archiver.close();
+
+      Exec exec = new Exec(getApiClient());
+      String[] mkdirCmds = new String[]{"sh","-c", "mkdir -p /tmp"};
+      Process mkdirProcess = exec.exec(namespace, pod, mkdirCmds, container, false, false);
+      mkdirProcess.waitFor();
+      mkdirProcess.destroy();
+
+      copyFileToPod(namespace,pod,container,Paths.get(tempSourceTarFile.getAbsolutePath()),Paths.get(tempTarFilePath));
+
+
+      String[] untarCmds = new String[]{"sh","-c", "tar -xf " + tempTarFilePath + " -C " + destPath};
+      Process untarProcess = exec.exec(namespace, pod, untarCmds, container, false, false);
+      untarProcess.waitFor();
+      untarProcess.destroy();
+
+      String[] rmCmds = new String[]{"sh","-c", "rm -rf " + tempTarFilePath};
+      Process rmProcess = exec.exec(namespace, pod, rmCmds, container, false, false);
+      rmProcess.waitFor();
+      rmProcess.destroy();
+
+
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    }
+    tempSourceTarFile.delete();
+
   }
 
   private Process execCopyToPod(String namespace, String pod, String container, Path destPath)

@@ -2,30 +2,41 @@ package io.github.xiaoso456.kubelink.service;
 
 
 import cn.hutool.core.date.StopWatch;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.watch.WatchMonitor;
 import cn.hutool.core.io.watch.Watcher;
 import cn.hutool.core.lang.UUID;
+import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.extra.compress.CompressUtil;
+import cn.hutool.extra.compress.archiver.Archiver;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.github.xiaoso456.kubelink.api.Copy;
 import io.github.xiaoso456.kubelink.domain.SyncConfig;
 
+import io.github.xiaoso456.kubelink.domain.SyncResponse;
 import io.github.xiaoso456.kubelink.enums.SyncType;
 import io.github.xiaoso456.kubelink.exception.runtime.LinkRuntimeException;
 import io.github.xiaoso456.kubelink.mapper.SyncConfigMapper;
 
+import io.kubernetes.client.Exec;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.util.exception.CopyNotSupportedException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -34,7 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SyncConfigService extends ServiceImpl<SyncConfigMapper, SyncConfig> {
 
     @Autowired
-    ConfigManagementService configManagementService;
+    private ConfigManagementService configManagementService;
     
     private Map<Long, SyncConfig> idSyncConfigMap = new ConcurrentHashMap<>();
     private Map<Long, WatchMonitor> idWatchMonitor = new ConcurrentHashMap<>();
@@ -86,7 +97,7 @@ public class SyncConfigService extends ServiceImpl<SyncConfigMapper, SyncConfig>
     }
 
 
-    public void syncOnly(SyncConfig syncConfig){
+    public SyncResponse syncOnly(SyncConfig syncConfig){
         ApiClient apiClient = configManagementService.getApiClient();
         Copy copy = new Copy();
         copy.setApiClient(apiClient);
@@ -97,11 +108,15 @@ public class SyncConfigService extends ServiceImpl<SyncConfigMapper, SyncConfig>
                 copy.copyFileToPod(syncConfig.getNamespace(), syncConfig.getPod(), syncConfig.getContainer(), Paths.get(syncConfig.getSource()), Paths.get(syncConfig.getTarget()));
                 stopWatch.stop();
                 log.info("Sync id [{}] task success,cost [{}] ms", syncConfig.getId(), stopWatch.getTotalTimeMillis());
-            } catch (ApiException | IOException e) {
+            } catch (Exception e) {
                 log.error("Sync id [{}] task failed", syncConfig.getId());
                 throw new LinkRuntimeException(e);
             }
-            return;
+            return SyncResponse.builder()
+                    .success(true)
+                    .spendMillisecond(stopWatch.getTotalTimeMillis())
+                    .build();
+
         }
 
         if(syncConfig.getSyncType() == SyncType.FILE_POD_TO_LOCAL && syncConfig.getEnable()){
@@ -113,7 +128,11 @@ public class SyncConfigService extends ServiceImpl<SyncConfigMapper, SyncConfig>
                 log.error("sync id [{}] task failed", syncConfig.getId());
                 throw new LinkRuntimeException(e);
             }
-            return;
+            return SyncResponse.builder()
+                    .success(true)
+                    .spendMillisecond(stopWatch.getTotalTimeMillis())
+                    .build();
+
         }
 
         if(syncConfig.getSyncType() == SyncType.FOLDER_POD_TO_LOCAL && syncConfig.getEnable()){
@@ -125,8 +144,29 @@ public class SyncConfigService extends ServiceImpl<SyncConfigMapper, SyncConfig>
                 log.error("sync id [{}] task failed", syncConfig.getId());
                 throw new LinkRuntimeException(e);
             }
-            return;
+            return SyncResponse.builder()
+                    .success(true)
+                    .spendMillisecond(stopWatch.getTotalTimeMillis())
+                    .build();
         }
+
+        if(syncConfig.getSyncType() == SyncType.FOLDER_LOCAL_TO_POD && syncConfig.getEnable()){
+            try {
+                copy.copyDirectoryToPod(syncConfig.getNamespace(),syncConfig.getPod(),syncConfig.getContainer(),Paths.get(syncConfig.getSource()), Paths.get(syncConfig.getTarget()));
+                stopWatch.stop();
+                return SyncResponse.builder()
+                        .success(true)
+                        .spendMillisecond(stopWatch.getTotalTimeMillis())
+                        .build();
+            }catch (IOException | ApiException e) {
+                throw new LinkRuntimeException(e);
+            }
+
+        }
+        return SyncResponse.builder()
+                .success(false)
+                .spendMillisecond(-1L)
+                .build();
 
     }
 

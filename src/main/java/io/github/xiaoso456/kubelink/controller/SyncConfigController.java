@@ -1,7 +1,9 @@
 package io.github.xiaoso456.kubelink.controller;
 
+import cn.hutool.core.util.StrUtil;
 import io.github.xiaoso456.kubelink.domain.ClusterConfig;
 import io.github.xiaoso456.kubelink.domain.SyncConfig;
+import io.github.xiaoso456.kubelink.domain.SyncResponse;
 import io.github.xiaoso456.kubelink.enums.SyncType;
 import io.github.xiaoso456.kubelink.exception.LinkException;
 import io.github.xiaoso456.kubelink.service.ClusterConfigService;
@@ -32,12 +34,18 @@ public class SyncConfigController {
 
     @PostMapping("/config")
     public boolean add(@RequestBody SyncConfig syncConfig) {
+        if(StrUtil.isBlank(syncConfig.getContainer())){
+            syncConfig.setContainer("");
+        }
         return syncConfigService.save(syncConfig);
     }
 
     @PutMapping("/config/{id}")
     public boolean update(@PathVariable Long id,@RequestBody SyncConfig syncConfig) {
         syncConfig.setId(id);
+        if(StrUtil.isBlank(syncConfig.getContainer())){
+            syncConfig.setContainer("");
+        }
         return syncConfigService.updateById(syncConfig);
     }
 
@@ -47,9 +55,9 @@ public class SyncConfigController {
     }
 
     @PostMapping("/config/{id}/sync-only")
-    public void syncOnly(@PathVariable Long id) {
+    public SyncResponse syncOnly(@PathVariable Long id) {
         SyncConfig syncConfig = syncConfigService.getById(id);
-        syncConfigService.syncOnly(syncConfig);
+        return syncConfigService.syncOnly(syncConfig);
     }
 
     @GetMapping("/sync-type/list")
