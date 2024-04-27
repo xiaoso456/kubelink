@@ -178,6 +178,37 @@ public class SyncConfigService extends ServiceImpl<SyncConfigMapper, SyncConfig>
         idWatchMonitor.clear();
     }
 
+    public void deleteResource(Long id,String type){
+        SyncConfig syncConfig = getById(id);
+        boolean removeLocal = false;
+        if(syncConfig.getSyncType() == SyncType.FILE_LOCAL_TO_POD && "source".equals(type)){
+            removeLocal = true;
+        }else if(syncConfig.getSyncType() == SyncType.FOLDER_LOCAL_TO_POD && "source".equals(type)){
+            removeLocal = true;
+        }else if(syncConfig.getSyncType() == SyncType.FILE_POD_TO_LOCAL && "target".equals(type)){
+            removeLocal = true;
+        }else if(syncConfig.getSyncType() == SyncType.FOLDER_POD_TO_LOCAL && "target".equals(type)){
+            removeLocal = true;
+        }
+
+        if(removeLocal){
+            File file = new File(syncConfig.getSource());
+            if(file.exists()){
+                file.delete();
+            }
+        }else {
+            ApiClient apiClient = configManagementService.getApiClient();
+            Exec exec = new Exec();
+            exec.setApiClient(apiClient);
+            try {
+                Process process = exec.exec(syncConfig.getNamespace(), syncConfig.getPod(), new String[]{"rm", "-rf", syncConfig.getTarget()}, false, false);
+                process.waitFor();
+            } catch (IOException | ApiException | InterruptedException e) {
+                throw new LinkRuntimeException(e);
+            }
+        }
+    }
+
 }
 
 

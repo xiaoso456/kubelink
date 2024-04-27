@@ -6,6 +6,7 @@ import io.github.xiaoso456.kubelink.domain.SyncConfig;
 import io.github.xiaoso456.kubelink.domain.SyncResponse;
 import io.github.xiaoso456.kubelink.enums.SyncType;
 import io.github.xiaoso456.kubelink.exception.LinkException;
+import io.github.xiaoso456.kubelink.exception.runtime.LinkRuntimeException;
 import io.github.xiaoso456.kubelink.service.ClusterConfigService;
 import io.github.xiaoso456.kubelink.service.SyncConfigService;
 import io.kubernetes.client.openapi.models.VersionInfo;
@@ -58,6 +59,15 @@ public class SyncConfigController {
     public SyncResponse syncOnly(@PathVariable Long id) {
         SyncConfig syncConfig = syncConfigService.getById(id);
         return syncConfigService.syncOnly(syncConfig);
+    }
+
+    @PostMapping("/config/{id}/delete-resource/{type}")
+    public void deleteResource(@PathVariable Long id, @PathVariable String type) {
+        // delete source or target
+        if(!"source".equals(type) && !"target".equals(type)){
+            throw new LinkRuntimeException("type must be source or target");
+        }
+        syncConfigService.deleteResource(id,type);
     }
 
     @GetMapping("/sync-type/list")

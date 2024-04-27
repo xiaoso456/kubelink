@@ -9,13 +9,6 @@ spring:
       static-locations: file:resource
 server:
   port: 15151
-kube:
-  link:
-    config:
-      directory: "configs/config"
-      default-active-file-name: "config"
-    sync:
-      file: "configs/sync-config/sync.json"
 springdoc:
   api-docs:
     enabled: true
