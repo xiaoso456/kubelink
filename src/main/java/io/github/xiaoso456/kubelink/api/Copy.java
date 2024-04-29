@@ -125,6 +125,16 @@ public class Copy extends Exec {
             destination);
   }
 
+  public void copyDirectoryDirectFromPod(V1Pod pod, String container, String srcPath, Path destination)
+          throws ApiException, IOException, CopyNotSupportedException {
+    copyDirectoryDirectFromPod(
+            pod.getMetadata().getNamespace(),
+            pod.getMetadata().getName(),
+            container,
+            srcPath,
+            destination);
+  }
+
   public void copyDirectoryFromPod(String namespace, String pod, String srcPath, Path destination)
           throws ApiException, IOException, CopyNotSupportedException {
     copyDirectoryFromPod(namespace, pod, null, srcPath, destination);
@@ -138,6 +148,16 @@ public class Copy extends Exec {
       throw new CopyNotSupportedException("Tar is not present in the target container");
     }
     copyDirectoryFromPod(namespace, pod, container, srcPath, destination, true);
+  }
+
+  public void copyDirectoryDirectFromPod(
+          String namespace, String pod, String container, String srcPath, Path destination)
+          throws ApiException, IOException, CopyNotSupportedException {
+    // Test that 'tar' is present in the container?
+    if (!isTarPresentInContainer(namespace, pod, container)) {
+      throw new CopyNotSupportedException("Tar is not present in the target container");
+    }
+    copyDirectoryDirectFromPod(namespace, pod, container, srcPath, destination, true);
   }
 
   /**
@@ -178,6 +198,44 @@ public class Copy extends Exec {
     }
   }
 
+  /**
+   * Copy directory from a pod to local.
+   *
+   * @param namespace
+   * @param pod
+   * @param container
+   * @param srcPath
+   * @param destination
+   * @param enableTarCompressing: false if tar is not present in target container
+   * @throws IOException
+   * @throws ApiException
+   */
+  public void copyDirectoryDirectFromPod(
+          String namespace,
+          String pod,
+          String container,
+          String srcPath,
+          Path destination,
+          boolean enableTarCompressing)
+          throws IOException, ApiException {
+    if (!enableTarCompressing) {
+      TreeNode tree = new TreeNode(true, srcPath, true);
+      createDirectoryTree(tree, namespace, pod, container, srcPath);
+      createDirectoryStructureFromTree(tree, namespace, pod, container, srcPath, destination);
+      return;
+    }
+    Future<Integer> future =
+            copyDirectoryDirectFromPodAsync(namespace, pod, container, srcPath, destination);
+    try {
+      int code = future.get().intValue();
+      if (code != 0) {
+        throw new IOException("Copy failed (" + code + ")");
+      }
+    } catch (InterruptedException | ExecutionException ex) {
+      throw new IOException(ex);
+    }
+  }
+
   public Future<Integer> copyDirectoryFromPodAsync(
           String namespace, String pod, String container, String srcPath, Path destination)
           throws IOException, ApiException {
@@ -186,6 +244,50 @@ public class Copy extends Exec {
                     namespace,
                     pod,
                     new String[] {"sh", "-c", "tar cz - " + srcPath + " | base64"},
+                    container,
+                    false,
+                    false);
+    try (InputStream is = new Base64InputStream(new BufferedInputStream(proc.getInputStream()));
+         ArchiveInputStream archive = new TarArchiveInputStream(new GzipCompressorInputStream(is))) {
+      for (ArchiveEntry entry = archive.getNextEntry();
+           entry != null;
+           entry = archive.getNextEntry()) {
+        if (!archive.canReadEntryData(entry)) {
+          log.error("Can't read: " + entry);
+          continue;
+        }
+        String normalName = FilenameUtils.normalize(entry.getName());
+        if (normalName == null) {
+          throw new IOException("Invalid entry: " + entry.getName());
+        }
+        File f = new File(destination.toFile(), normalName);
+        if (entry.isDirectory()) {
+          if (!f.isDirectory() && !f.mkdirs()) {
+            throw new IOException("create directory failed: " + f);
+          }
+        } else {
+          File parent = f.getParentFile();
+          if (!parent.isDirectory() && !parent.mkdirs()) {
+            throw new IOException("create directory failed: " + parent);
+          }
+          try (OutputStream fs = new FileOutputStream(f)) {
+            Streams.copy(archive, fs);
+            fs.flush();
+          }
+        }
+      }
+    }
+    return new ProcessFuture(proc);
+  }
+
+  public Future<Integer> copyDirectoryDirectFromPodAsync(
+          String namespace, String pod, String container, String srcPath, Path destination)
+          throws IOException, ApiException {
+    final Process proc =
+            this.exec(
+                    namespace,
+                    pod,
+                    new String[] {"sh", "-c", "tar -czf - -C " + srcPath + " . | base64"},
                     container,
                     false,
                     false);
@@ -435,7 +537,7 @@ public class Copy extends Exec {
       archiver.close();
 
       Exec exec = new Exec(getApiClient());
-      String[] mkdirCmds = new String[]{"sh","-c", "mkdir -p /tmp"};
+      String[] mkdirCmds = new String[]{"sh","-c", "mkdir -p /tmp && mkdir -p " + destPath};
       Process mkdirProcess = exec.exec(namespace, pod, mkdirCmds, container, false, false);
       mkdirProcess.waitFor();
       mkdirProcess.destroy();
@@ -443,7 +545,8 @@ public class Copy extends Exec {
       copyFileToPod(namespace,pod,container,Paths.get(tempSourceTarFile.getAbsolutePath()),Paths.get(tempTarFilePath));
 
 
-      String[] untarCmds = new String[]{"sh","-c", "tar -xf " + tempTarFilePath + " -C " + destPath};
+
+      String[] untarCmds = new String[]{"sh","-c", "tar -xf " + tempTarFilePath + " -C " + destPath + " --strip-components=1"};
       Process untarProcess = exec.exec(namespace, pod, untarCmds, container, false, false);
       untarProcess.waitFor();
       untarProcess.destroy();
@@ -457,7 +560,7 @@ public class Copy extends Exec {
     } catch (InterruptedException e) {
       throw new IOException(e);
     }
-    tempSourceTarFile.delete();
+    // tempSourceTarFile.delete();
 
   }
 

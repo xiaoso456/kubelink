@@ -137,7 +137,7 @@ public class SyncConfigService extends ServiceImpl<SyncConfigMapper, SyncConfig>
 
         if(syncConfig.getSyncType() == SyncType.FOLDER_POD_TO_LOCAL && syncConfig.getEnable()){
             try {
-                copy.copyDirectoryFromPod(syncConfig.getNamespace(), syncConfig.getPod(), syncConfig.getContainer(), syncConfig.getSource(), Paths.get(syncConfig.getTarget()));
+                copy.copyDirectoryDirectFromPod(syncConfig.getNamespace(), syncConfig.getPod(), syncConfig.getContainer(), syncConfig.getSource(), Paths.get(syncConfig.getTarget()));
                 stopWatch.stop();
                 log.info("Sync id [{}] task success,cost [{}] ms", syncConfig.getId(), stopWatch.getTotalTimeMillis());
             } catch (ApiException | IOException | CopyNotSupportedException e) {
