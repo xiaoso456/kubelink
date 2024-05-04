@@ -3,9 +3,11 @@ package io.github.xiaoso456.kubelink.service;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.xiaoso456.kubelink.exception.runtime.LinkRuntimeException;
+import io.github.xiaoso456.kubelink.utils.KubeApiUtils;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,6 +41,44 @@ public class StatefulsetService {
             }
             return statefulSetList.getItems();
 
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+
+    }
+
+    public List<V1Pod> getStatefulsetPods(String namespace, String statefulsetName){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        CoreV1Api coreV1Api = new CoreV1Api();
+        coreV1Api.setApiClient(apiClient);
+        try {
+            V1StatefulSet v1StatefulSet = appsV1Api.readNamespacedStatefulSet(statefulsetName, namespace).execute();
+
+            // String appLabel = v1StatefulSet.getSpec().getTemplate().getMetadata().getLabels().getOrDefault("app", "");
+            // V1PodList v1PodList = coreV1Api.listNamespacedPod(namespace).labelSelector("app=" + appLabel).execute();
+            String selector = KubeApiUtils.labelsMapToString(v1StatefulSet.getSpec().getTemplate().getMetadata().getLabels());
+            V1PodList v1PodList = coreV1Api.listNamespacedPod(namespace).labelSelector(selector).execute();
+
+            return v1PodList.getItems();
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
+    public V1StatefulSet getStatefulset(String namespace,String statefulset){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        try {
+            return appsV1Api.readNamespacedStatefulSet(statefulset, namespace).execute();
         } catch (ApiException e) {
             throw new LinkRuntimeException(e);
         }

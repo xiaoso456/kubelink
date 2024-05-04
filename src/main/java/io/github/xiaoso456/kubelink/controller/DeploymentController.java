@@ -31,11 +31,27 @@ public class DeploymentController {
         }
     }
 
+    @GetMapping("{namespace}/deployment/{deployment}")
+    public JSON getDeployment(@PathVariable String namespace, @PathVariable String deployment){
+        V1Deployment v1Deployment = deploymentService.getDeployment(namespace, deployment);
+        return JSONUtil.parse(v1Deployment);
+
+    }
+
+    @GetMapping("{namespace}/deployment/{deployment}/pod/list")
+    public JSON getDeploymentPods(@PathVariable String namespace, @PathVariable String deployment){
+        return JSONUtil.parse(deploymentService.getDeploymentPods(namespace, deployment));
+    }
+
+
     @PutMapping ("{namespace}/deployment/{deployment}/container/{container}/suspend")
     public void suspendDeployment(@PathVariable String namespace,@PathVariable String deployment,@PathVariable String container){
 
         deploymentService.suspendDeployment(namespace,deployment,container);
 
     }
+
+
+    
 
 }

@@ -3,9 +3,11 @@ package io.github.xiaoso456.kubelink.service;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.xiaoso456.kubelink.exception.runtime.LinkRuntimeException;
+import io.github.xiaoso456.kubelink.utils.KubeApiUtils;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,6 +46,41 @@ public class DaemonsetService {
         }
 
     }
+
+    public List<V1Pod> getDaemonsetPods(String namespace, String daemonsetName){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        CoreV1Api coreV1Api = new CoreV1Api();
+        coreV1Api.setApiClient(apiClient);
+        try {
+            V1DaemonSet v1Daemonset = appsV1Api.readNamespacedDaemonSet(daemonsetName, namespace).execute();
+
+            String selector = KubeApiUtils.labelsMapToString(v1Daemonset.getSpec().getTemplate().getMetadata().getLabels());
+            V1PodList v1PodList = coreV1Api.listNamespacedPod(namespace).labelSelector(selector).execute();
+
+            return v1PodList.getItems();
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
+    public V1DaemonSet getDaemonsetset(String namespace,String daemonset){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        try {
+            return appsV1Api.readNamespacedDaemonSet(daemonset, namespace).execute();
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+
+    }
+
 
     private static final List<String> SUSPEND_COMMANDS = List.of("/bin/sh", "-c");
     private static final List<String> SUSPEND_ARGS= List.of("while true; do echo 'suspend looping...'; sleep 5; done");

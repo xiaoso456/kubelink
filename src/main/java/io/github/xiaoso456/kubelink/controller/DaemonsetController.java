@@ -32,6 +32,18 @@ public class DaemonsetController {
         }
     }
 
+    @GetMapping("{namespace}/daemonset/{daemonset}")
+    public JSON getDaemonset(@PathVariable String namespace, @PathVariable String daemonset){
+        V1DaemonSet v1DaemonSet = daemonsetService.getDaemonsetset(namespace, daemonset);
+        return JSONUtil.parse(v1DaemonSet);
+
+    }
+
+    @GetMapping("{namespace}/daemonset/{daemonset}/pod/list")
+    public JSON getDaemonsetPods(@PathVariable String namespace, @PathVariable String daemonset){
+        return JSONUtil.parse(daemonsetService.getDaemonsetPods(namespace, daemonset));
+    }
+
     @PutMapping ("{namespace}/daemonset/{daemonset}/container/{container}/suspend")
     public void suspendDaemonset(@PathVariable String namespace,@PathVariable String daemonset,@PathVariable String container){
         daemonsetService.suspendsDaemonset(namespace,daemonset,container);

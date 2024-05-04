@@ -3,12 +3,11 @@ package io.github.xiaoso456.kubelink.service;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.xiaoso456.kubelink.exception.runtime.LinkRuntimeException;
+import io.github.xiaoso456.kubelink.utils.KubeApiUtils;
+import io.kubernetes.client.PodLogs;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.apis.ApiextensionsApi;
-import io.kubernetes.client.openapi.apis.ApiextensionsV1Api;
-import io.kubernetes.client.openapi.apis.AppsV1Api;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.apis.*;
 import io.kubernetes.client.openapi.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,6 +46,23 @@ public class DeploymentService {
 
     }
 
+    public V1Deployment getDeployment(String namespace,String deployment){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        try {
+            return appsV1Api.readNamespacedDeployment(deployment, namespace).execute();
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+
+    }
+
+
     private static final List<String> SUSPEND_COMMANDS = List.of("/bin/sh", "-c");
     private static final List<String> SUSPEND_ARGS= List.of("while true; do echo 'suspend looping...'; sleep 5; done");
 
@@ -78,21 +94,44 @@ public class DeploymentService {
 
     }
 
-    public void showDeploymentHistory(String namespace,String deploymentName){
+    public List<V1Pod> getDeploymentPods(String namespace, String deploymentName){
         ApiClient apiClient = configManagementService.getApiClient();
 
         AppsV1Api appsV1Api = new AppsV1Api();
         appsV1Api.setApiClient(apiClient);
+
+        CoreV1Api coreV1Api = new CoreV1Api();
+        coreV1Api.setApiClient(apiClient);
+
         try {
             V1Deployment v1Deployment = appsV1Api.readNamespacedDeployment(deploymentName, namespace).execute();
-            V1Deployment execute = appsV1Api.readNamespacedDeploymentStatus(deploymentName, namespace).execute();
-            ApiextensionsV1Api apiextensionsV1Api = new ApiextensionsV1Api();
+            // String appLabel = v1Deployment.getSpec().getTemplate().getMetadata().getLabels().getOrDefault("app", "");
+            // V1PodList v1PodList = coreV1Api.listNamespacedPod(namespace).labelSelector("app=" + appLabel).execute();
+            String selector = KubeApiUtils.labelsMapToString(v1Deployment.getSpec().getTemplate().getMetadata().getLabels());
+            V1PodList v1PodList = coreV1Api.listNamespacedPod(namespace).labelSelector(selector).execute();
 
-
-
+            return v1PodList.getItems();
         } catch (ApiException e) {
             throw new LinkRuntimeException(e);
         }
     }
+
+    // public void showDeploymentHistory(String namespace,String deploymentName){
+    //     ApiClient apiClient = configManagementService.getApiClient();
+    //
+    //     AppsV1Api appsV1Api = new AppsV1Api();
+    //     appsV1Api.setApiClient(apiClient);
+    //     try {
+    //         V1Deployment v1Deployment = appsV1Api.readNamespacedDeployment(deploymentName, namespace).execute();
+    //         V1Deployment execute = appsV1Api.readNamespacedDeploymentStatus(deploymentName, namespace).execute();
+    //         ApiextensionsV1Api apiextensionsV1Api = new ApiextensionsV1Api();
+    //
+    //
+    //     } catch (ApiException e) {
+    //         throw new LinkRuntimeException(e);
+    //     }
+    // }
+
+
 
 }

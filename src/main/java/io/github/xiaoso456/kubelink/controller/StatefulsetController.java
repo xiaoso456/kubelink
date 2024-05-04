@@ -32,6 +32,19 @@ public class StatefulsetController {
         }
     }
 
+    @GetMapping("{namespace}/statefulset/{statefulset}")
+    public JSON getStatefulset(@PathVariable String namespace, @PathVariable String statefulset){
+        V1StatefulSet v1StatefulSet = statefulsetService.getStatefulset(namespace, statefulset);
+        return JSONUtil.parse(v1StatefulSet);
+
+    }
+
+    @GetMapping("{namespace}/statefulset/{statefulset}/pod/list")
+    public JSON getStatefulsetPods(@PathVariable String namespace, @PathVariable String statefulset){
+        return JSONUtil.parse(statefulsetService.getStatefulsetPods(namespace, statefulset));
+    }
+
+
     @PutMapping ("{namespace}/statefulset/{statefulset}/container/{container}/suspend")
     public void suspendDeployment(@PathVariable String namespace,@PathVariable String statefulset,@PathVariable String container){
 

@@ -6,6 +6,7 @@ import io.github.xiaoso456.kubelink.domain.ClusterConfig;
 import io.github.xiaoso456.kubelink.exception.LinkException;
 import io.github.xiaoso456.kubelink.utils.KubeApiUtils;
 import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.util.Yaml;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
