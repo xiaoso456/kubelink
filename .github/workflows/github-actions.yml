@@ -9,6 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      KUBE_LINK_WEB_VERSION: v0.0.1-draft
+      KUBE_LINK_VERSION: v0.0.1-draft
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -29,7 +32,7 @@ jobs:
           mv start.sh kube-link-dist/start.sh
           mv start.cmd kube-link-dist/start.cmd
           # get web page resource
-          wget https://github.com/xiaoso456/kubelink-web/releases/download/v0.0.1-draft/dist.zip -P .
+          wget https://github.com/xiaoso456/kubelink-web/releases/download/${{ env.KUBE_LINK_WEB_VERSION }}/dist.zip -P .
           unzip dist.zip -d kube-link-dist/resource
       - name: Package raw zip
         run: |
@@ -45,14 +48,23 @@ jobs:
           rm -rf java.zip && rm -rf java/jdk*
           zip -r kube-link-dist-windows-x64-jre.zip .
           mv kube-link-dist-windows-x64-jre.zip ../
+      - name: package linux x64 zip
+        run: |
+          cd kube-link-dist
+          rm -rf java && mkdir java
+          wget https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.11%2B9/OpenJDK17U-jre_x64_linux_hotspot_17.0.11_9.tar.gz -O java.tar.gz
+          tar -zxf java.tar.gz -C java --strip-components=1
+          rm -rf java.tar.gz
+          zip -r kube-link-dist-linux-x64-jre.zip .
+          mv kube-link-dist-linux-x64-jre.zip ../
       - name: Upload to Release
         uses: ncipollo/release-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: "kube-link-dist.zip,kube-link-dist-windows-x64-jre.zip"
+          artifacts: "kube-link-dist.zip,kube-link-dist-windows-x64-jre.zip,kube-link-dist-linux-x64-jre.zip"
           prerelease: true
           name: kube-link
-          tag: v0.0.1-draft
+          tag: ${{ env.KUBE_LINK_VERSION }}
           body: "This is a draft release"
           allowUpdates: true
 
