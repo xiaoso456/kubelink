@@ -41,7 +41,7 @@ jobs:
           cd kube-link-dist
           rm -rf java && mkdir java
           wget https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.11%2B9/OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip  -O java.zip
-          unzip java.zip -j -d java
+          unzip -j java.zip -d java
           rm -rf java.zip
           zip -r kube-link-dist-windows-x64-jre.zip .
           mv kube-link-dist-windows-x64-jre.zip ../
