@@ -19,12 +19,12 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - name: Build with maven
-        run: mvn clean package -e -U -B --file kube-link/pom.xml
+        run: mvn clean package -e -U -B --file pom.xml
       - name: Make distribution
         run: |
-          mkdir -p kube-link-dist/configs/db kube-link-dist/resource
-          mv kube-link/target/*.jar kube-link-dist/kube-link.jar
-          mv kube-link/configs/db/* kube-link-dist/configs/db/
+          mkdir -p kube-link-dist/configs/db resource
+          mv target/*.jar kube-link-dist/kube-link.jar
+          mv configs/db/* kube-link-dist/configs/db/
           # web page resource
           wget https://github.com/xiaoso456/kubelink-web/releases/download/v0.0.1-draft/dist.zip -P .
           unzip dist.zip -d kube-link-dist/resource
