@@ -22,23 +22,34 @@ jobs:
         run: mvn clean package -e -U -B --file pom.xml
       - name: Make distribution
         run: |
-          mkdir -p kube-link-dist/configs/db resource
+          mkdir -p kube-link-dist/configs/db kube-link-dist/resource kube-link-dist/configs/config
           mv target/*.jar kube-link-dist/kube-link.jar
           mv configs/db/* kube-link-dist/configs/db/
-          # web page resource
+          mv src/main/resources/application.yml kube-link-dist/configs/config/application.yml
+          mv start.sh kube-link-dist/start.sh
+          mv start.cmd kube-link-dist/start.cmd
+          # get web page resource
           wget https://github.com/xiaoso456/kubelink-web/releases/download/v0.0.1-draft/dist.zip -P .
           unzip dist.zip -d kube-link-dist/resource
-
-      - name: Package to zip
+      - name: Package raw zip
         run: |
           cd kube-link-dist
           zip -r kube-link-dist.zip .
           mv kube-link-dist.zip ../
+      - name: package windows x64 zip
+        run: |
+          cd kube-link-dist
+          rm -rf java && mkdir java
+          wget https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.11%2B9/OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip  -O java.zip
+          unzip java.zip -j -d java
+          rm -rf java.zip
+          zip -r kube-link-dist-windows-x64-jre.zip .
+          mv kube-link-dist-windows-x64-jre.zip ../
       - name: Upload to Release
         uses: ncipollo/release-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: "kube-link-dist.zip"
+          artifacts: "kube-link-dist.zip,kube-link-dist-windows-x64-jre.zip"
           prerelease: true
           name: kube-link
           tag: v0.0.1-draft
