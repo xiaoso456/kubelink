@@ -1,12 +1,16 @@
 package io.github.xiaoso456.kubelink.utils;
 
 import io.kubernetes.client.openapi.ApiClient;
+
+import io.kubernetes.client.openapi.models.*;
 import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.KubeConfig;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class KubeApiUtils {
     public static ApiClient createApiClient(String clusterConfig) throws IOException {
@@ -27,4 +31,29 @@ public class KubeApiUtils {
         sb.deleteCharAt(sb.length() - 1);
         return sb.toString();
     }
+
+    public static <T> String toJsonString(List<T> objs) {
+
+        return "[" +
+                    objs.stream().map(obj -> {
+
+                                if(obj instanceof V1Pod objTemp){
+                                    return objTemp.toJson();
+                                }else if(obj instanceof V1Service objTemp){
+                                    return objTemp.toJson();
+                                }else if(obj instanceof V1Deployment objTemp){
+                                    return objTemp.toJson();
+                                }else if(obj instanceof V1StatefulSet objTemp){
+                                    return objTemp.toJson();
+                                }else if(obj instanceof V1DaemonSet objTemp){
+                                    return objTemp.toJson();
+                                }else{
+                                    throw new RuntimeException("not support type");
+                                }
+                            } )
+                            .collect(Collectors.joining(",")) +
+                "]";
+    }
+
+
 }

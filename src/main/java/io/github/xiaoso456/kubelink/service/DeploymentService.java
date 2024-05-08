@@ -4,7 +4,6 @@ package io.github.xiaoso456.kubelink.service;
 import cn.hutool.core.util.StrUtil;
 import io.github.xiaoso456.kubelink.exception.runtime.LinkRuntimeException;
 import io.github.xiaoso456.kubelink.utils.KubeApiUtils;
-import io.kubernetes.client.PodLogs;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.*;
@@ -13,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static io.github.xiaoso456.kubelink.constant.CommonConstant.ALL_NAMESPACE;
 import static io.github.xiaoso456.kubelink.constant.CommonConstant.FIRST_CONTAINER;
@@ -43,7 +44,6 @@ public class DeploymentService {
         } catch (ApiException e) {
             throw new LinkRuntimeException(e);
         }
-
     }
 
     public V1Deployment getDeployment(String namespace,String deployment){
@@ -115,6 +115,44 @@ public class DeploymentService {
             throw new LinkRuntimeException(e);
         }
     }
+
+    public List<V1Service> getDeploymentServices(String namespace, String deploymentName){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        CoreV1Api coreV1Api = new CoreV1Api();
+        coreV1Api.setApiClient(apiClient);
+
+        try {
+            V1Deployment v1Deployment = appsV1Api.readNamespacedDeployment(deploymentName, namespace).execute();
+
+            Map<String, String> deploymentLabels= v1Deployment.getSpec().getTemplate().getMetadata().getLabels();
+
+            V1ServiceList v1ServiceList = coreV1Api.listNamespacedService(namespace).execute();
+            List<V1Service> v1Services = v1ServiceList.getItems().stream().filter(v1Service -> {
+                if(v1Service.getSpec().getSelector().isEmpty()){
+                    return false;
+                }
+                boolean isMatch = true;
+                for (Map.Entry<String, String> selectorLabel : v1Service.getSpec().getSelector().entrySet()) {
+                    if (!deploymentLabels.containsKey(selectorLabel.getKey()) || !deploymentLabels.get(selectorLabel.getKey()).equals(selectorLabel.getValue())) {
+                        isMatch = false;
+                        break;
+                    }
+                }
+                return isMatch;
+
+            }).toList();
+
+            return v1Services;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
+
 
     // public void showDeploymentHistory(String namespace,String deploymentName){
     //     ApiClient apiClient = configManagementService.getApiClient();

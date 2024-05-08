@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 import static io.github.xiaoso456.kubelink.constant.CommonConstant.ALL_NAMESPACE;
 import static io.github.xiaoso456.kubelink.constant.CommonConstant.FIRST_CONTAINER;
@@ -83,6 +84,42 @@ public class StatefulsetService {
             throw new LinkRuntimeException(e);
         }
 
+    }
+
+    public List<V1Service> getStatefulsetServices(String namespace, String deploymentName){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        CoreV1Api coreV1Api = new CoreV1Api();
+        coreV1Api.setApiClient(apiClient);
+
+        try {
+            V1StatefulSet v1StatefulSet = appsV1Api.readNamespacedStatefulSet(deploymentName, namespace).execute();
+
+            Map<String, String> v1StatefulSetLabels= v1StatefulSet.getSpec().getTemplate().getMetadata().getLabels();
+
+            V1ServiceList v1ServiceList = coreV1Api.listNamespacedService(namespace).execute();
+            List<V1Service> v1Services = v1ServiceList.getItems().stream().filter(v1Service -> {
+                if(v1Service.getSpec().getSelector().isEmpty()){
+                    return false;
+                }
+                boolean isMatch = true;
+                for (Map.Entry<String, String> selectorLabel : v1Service.getSpec().getSelector().entrySet()) {
+                    if (!v1StatefulSetLabels.containsKey(selectorLabel.getKey()) || !v1StatefulSetLabels.get(selectorLabel.getKey()).equals(selectorLabel.getValue())) {
+                        isMatch = false;
+                        break;
+                    }
+                }
+                return isMatch;
+
+            }).toList();
+
+            return v1Services;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
     }
 
     private static final List<String> SUSPEND_COMMANDS = List.of("/bin/sh", "-c");
