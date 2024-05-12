@@ -153,6 +153,23 @@ public class DeploymentService {
         }
     }
 
+    public V1Status deleteDeployment(String namespace, String deploymentName){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        CoreV1Api coreV1Api = new CoreV1Api();
+        coreV1Api.setApiClient(apiClient);
+
+        try {
+            V1Status v1Status = appsV1Api.deleteNamespacedDeployment(deploymentName, namespace).execute();
+            return v1Status;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
     public String getDeploymentYaml(String namespace, String deploymentName){
         ApiClient apiClient = configManagementService.getApiClient();
 

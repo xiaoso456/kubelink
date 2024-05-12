@@ -46,6 +46,8 @@ public class KubeApiUtils {
                                     return objTemp.toJson();
                                 }else if(obj instanceof V1DaemonSet objTemp){
                                     return objTemp.toJson();
+                                }else if(obj instanceof V1Job objTemp){
+                                    return objTemp.toJson();
                                 }else{
                                     throw new RuntimeException("not support type");
                                 }

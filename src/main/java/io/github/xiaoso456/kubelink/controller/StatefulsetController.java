@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import io.github.xiaoso456.kubelink.service.StatefulsetService;
 import io.github.xiaoso456.kubelink.utils.KubeApiUtils;
 import io.kubernetes.client.openapi.models.V1StatefulSet;
+import io.kubernetes.client.openapi.models.V1Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +37,13 @@ public class StatefulsetController {
 
     }
 
+    @DeleteMapping("{namespace}/statefulset/{statefulset}")
+    public String deleteStatefulset(@PathVariable String namespace, @PathVariable String statefulset){
+        V1Status v1Status = statefulsetService.deleteStatefulset(namespace, statefulset);
+        return v1Status.toJson();
+
+    }
+
     @GetMapping("{namespace}/statefulset/{statefulset}/pod/list")
     public String getStatefulsetPods(@PathVariable String namespace, @PathVariable String statefulset){
         return KubeApiUtils.toJsonString(statefulsetService.getStatefulsetPods(namespace, statefulset));
@@ -60,6 +68,8 @@ public class StatefulsetController {
         return KubeApiUtils.toJsonString(statefulsetService.getStatefulsetServices(namespace, statefulset));
 
     }
+
+
 
 
     @PutMapping ("{namespace}/statefulset/{statefulset}/container/{container}/suspend")

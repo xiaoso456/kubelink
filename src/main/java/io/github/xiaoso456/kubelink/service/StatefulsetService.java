@@ -156,6 +156,23 @@ public class StatefulsetService {
         }
     }
 
+    public V1Status deleteStatefulset(String namespace, String statefulstName){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        CoreV1Api coreV1Api = new CoreV1Api();
+        coreV1Api.setApiClient(apiClient);
+
+        try {
+            V1Status v1Status = appsV1Api.deleteNamespacedStatefulSet(statefulstName, namespace).execute();
+            return v1Status;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
     private static final List<String> SUSPEND_COMMANDS = List.of("/bin/sh", "-c");
     private static final List<String> SUSPEND_ARGS= List.of("while true; do echo 'suspend looping...'; sleep 5; done");
 
