@@ -1,17 +1,9 @@
 package io.github.xiaoso456.kubelink.controller;
 
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSON;
-import cn.hutool.json.JSONUtil;
-import io.github.xiaoso456.kubelink.service.DeploymentService;
 import io.github.xiaoso456.kubelink.service.PodService;
-import io.kubernetes.client.openapi.models.V1Deployment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/namespace")

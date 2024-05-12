@@ -2,7 +2,6 @@ package io.github.xiaoso456.kubelink.controller;
 
 
 import cn.hutool.core.util.StrUtil;
-
 import io.github.xiaoso456.kubelink.service.StatefulsetService;
 import io.github.xiaoso456.kubelink.utils.KubeApiUtils;
 import io.kubernetes.client.openapi.models.V1StatefulSet;
@@ -40,6 +39,19 @@ public class StatefulsetController {
     @GetMapping("{namespace}/statefulset/{statefulset}/pod/list")
     public String getStatefulsetPods(@PathVariable String namespace, @PathVariable String statefulset){
         return KubeApiUtils.toJsonString(statefulsetService.getStatefulsetPods(namespace, statefulset));
+
+    }
+
+    @GetMapping("{namespace}/statefulset/{statefulset}/yaml")
+    public String getDeploymentYaml(@PathVariable String namespace, @PathVariable String statefulset){
+        return statefulsetService.getStatefulsetYaml(namespace, statefulset);
+
+    }
+
+    @PutMapping("{namespace}/statefulset/{statefulset}/yaml")
+    public void updateDeploymentYaml(@PathVariable String namespace, @PathVariable String statefulset,
+                                     @RequestBody String yaml){
+        statefulsetService.updateStatefulsetYaml(namespace, statefulset,yaml);
 
     }
 

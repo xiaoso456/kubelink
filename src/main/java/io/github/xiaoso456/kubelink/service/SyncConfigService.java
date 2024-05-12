@@ -2,41 +2,30 @@ package io.github.xiaoso456.kubelink.service;
 
 
 import cn.hutool.core.date.StopWatch;
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.watch.WatchMonitor;
 import cn.hutool.core.io.watch.Watcher;
 import cn.hutool.core.lang.UUID;
-import cn.hutool.core.util.CharsetUtil;
-import cn.hutool.core.util.RandomUtil;
-import cn.hutool.extra.compress.CompressUtil;
-import cn.hutool.extra.compress.archiver.Archiver;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.github.xiaoso456.kubelink.api.Copy;
 import io.github.xiaoso456.kubelink.domain.SyncConfig;
-
 import io.github.xiaoso456.kubelink.domain.SyncResponse;
 import io.github.xiaoso456.kubelink.enums.SyncType;
 import io.github.xiaoso456.kubelink.exception.runtime.LinkRuntimeException;
 import io.github.xiaoso456.kubelink.mapper.SyncConfigMapper;
-
 import io.kubernetes.client.Exec;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.util.exception.CopyNotSupportedException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 

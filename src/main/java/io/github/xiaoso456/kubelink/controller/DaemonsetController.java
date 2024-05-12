@@ -2,13 +2,9 @@ package io.github.xiaoso456.kubelink.controller;
 
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSON;
-import cn.hutool.json.JSONUtil;
 import io.github.xiaoso456.kubelink.service.DaemonsetService;
-import io.github.xiaoso456.kubelink.service.StatefulsetService;
 import io.github.xiaoso456.kubelink.utils.KubeApiUtils;
 import io.kubernetes.client.openapi.models.V1DaemonSet;
-import io.kubernetes.client.openapi.models.V1StatefulSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,7 +46,18 @@ public class DaemonsetController {
         return KubeApiUtils.toJsonString(daemonsetService.getDaemonsetServices(namespace, daemonset));
 
     }
+    @GetMapping("{namespace}/daemonset/{daemonset}/yaml")
+    public String getDaemonsetYaml(@PathVariable String namespace, @PathVariable String daemonset){
+        return daemonsetService.getDaemonfulsetYaml(namespace, daemonset);
 
+    }
+
+    @PutMapping("{namespace}/daemonset/{daemonset}/yaml")
+    public void updateDaemonsetYaml(@PathVariable String namespace, @PathVariable String daemonset,
+                                     @RequestBody String yaml){
+        daemonsetService.updateDaemonsetYaml(namespace, daemonset,yaml);
+
+    }
     @PutMapping ("{namespace}/daemonset/{daemonset}/container/{container}/suspend")
     public void suspendDaemonset(@PathVariable String namespace,@PathVariable String daemonset,@PathVariable String container){
         daemonsetService.suspendsDaemonset(namespace,daemonset,container);

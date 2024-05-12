@@ -9,6 +9,7 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.*;
+import io.kubernetes.client.util.Yaml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -119,12 +120,44 @@ public class DaemonsetService {
         }
 
     }
+    
+    public String getDaemonfulsetYaml(String namespace, String daemonsetName){
+        ApiClient apiClient = configManagementService.getApiClient();
 
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        try {
+            V1DaemonSet v1DaemonSet = appsV1Api.readNamespacedDaemonSet(daemonsetName, namespace).execute();
+            v1DaemonSet.getMetadata().setManagedFields(null);
+            v1DaemonSet.setStatus(null);
+            String yaml = Yaml.dump(v1DaemonSet);
+            return yaml;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
+    public void updateDaemonsetYaml(String namespace, String daemonsetName,String yaml){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        try {
+
+            V1DaemonSet v1DaemonSet = Yaml.loadAs(yaml, V1DaemonSet.class);
+            appsV1Api.replaceNamespacedDaemonSet(daemonsetName, namespace, v1DaemonSet).execute();
+
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
 
     private static final List<String> SUSPEND_COMMANDS = List.of("/bin/sh", "-c");
     private static final List<String> SUSPEND_ARGS= List.of("while true; do echo 'suspend looping...'; sleep 5; done");
 
-    public void suspendsDaemonset(String namespace,String deploymentName,String containerName){
+    public void suspendsDaemonset(String namespace,String daemonsetName,String containerName){
         ApiClient apiClient = configManagementService.getApiClient();
 
         AppsV1Api appsV1Api = new AppsV1Api();
@@ -132,7 +165,7 @@ public class DaemonsetService {
 
 
         try {
-            V1DaemonSet v1Daemonset = appsV1Api.readNamespacedDaemonSet(deploymentName, namespace).execute();
+            V1DaemonSet v1Daemonset = appsV1Api.readNamespacedDaemonSet(daemonsetName, namespace).execute();
             V1PodSpec spec = v1Daemonset.getSpec().getTemplate().getSpec();
             List<V1Container> containers = spec.getContainers();
             if(StrUtil.isBlank(containerName) || FIRST_CONTAINER.equals(containerName)){
@@ -145,7 +178,7 @@ public class DaemonsetService {
                 });
             }
 
-            appsV1Api.replaceNamespacedDaemonSet(deploymentName, namespace, v1Daemonset).execute();
+            appsV1Api.replaceNamespacedDaemonSet(daemonsetName, namespace, v1Daemonset).execute();
 
         } catch (ApiException e) {
             throw new LinkRuntimeException(e);

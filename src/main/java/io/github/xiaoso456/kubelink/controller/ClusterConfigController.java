@@ -5,13 +5,10 @@ import io.github.xiaoso456.kubelink.exception.LinkException;
 import io.github.xiaoso456.kubelink.service.ClusterConfigService;
 import io.github.xiaoso456.kubelink.service.ConfigManagementService;
 import io.github.xiaoso456.kubelink.service.SyncConfigService;
-import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.VersionInfo;
-import jakarta.ws.rs.PUT;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController

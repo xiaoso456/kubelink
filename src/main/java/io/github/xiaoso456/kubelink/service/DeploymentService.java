@@ -6,14 +6,15 @@ import io.github.xiaoso456.kubelink.exception.runtime.LinkRuntimeException;
 import io.github.xiaoso456.kubelink.utils.KubeApiUtils;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.apis.*;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.*;
+import io.kubernetes.client.util.Yaml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static io.github.xiaoso456.kubelink.constant.CommonConstant.ALL_NAMESPACE;
 import static io.github.xiaoso456.kubelink.constant.CommonConstant.FIRST_CONTAINER;
@@ -152,7 +153,38 @@ public class DeploymentService {
         }
     }
 
+    public String getDeploymentYaml(String namespace, String deploymentName){
+        ApiClient apiClient = configManagementService.getApiClient();
 
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        try {
+            V1Deployment v1Deployment = appsV1Api.readNamespacedDeployment(deploymentName, namespace).execute();
+            v1Deployment.getMetadata().setManagedFields(null);
+            v1Deployment.setStatus(null);
+            String yaml = Yaml.dump(v1Deployment);
+            return yaml;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
+    public void updateDeploymentYaml(String namespace, String deploymentName,String yaml){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        try {
+
+            V1Deployment v1Deployment = Yaml.loadAs(yaml, V1Deployment.class);
+            appsV1Api.replaceNamespacedDeployment(deploymentName, namespace, v1Deployment).execute();
+
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
 
     // public void showDeploymentHistory(String namespace,String deploymentName){
     //     ApiClient apiClient = configManagementService.getApiClient();

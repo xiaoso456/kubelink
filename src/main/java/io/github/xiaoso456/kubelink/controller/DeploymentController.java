@@ -2,8 +2,6 @@ package io.github.xiaoso456.kubelink.controller;
 
 
 import cn.hutool.core.util.StrUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.gson.Gson;
 import io.github.xiaoso456.kubelink.service.DeploymentService;
 import io.github.xiaoso456.kubelink.utils.KubeApiUtils;
 import io.kubernetes.client.openapi.models.V1Deployment;
@@ -35,6 +33,20 @@ public class DeploymentController {
     public String getDeployment(@PathVariable String namespace, @PathVariable String deployment){
         V1Deployment v1Deployment = deploymentService.getDeployment(namespace, deployment);
         return v1Deployment.toJson();
+
+    }
+
+
+    @GetMapping("{namespace}/deployment/{deployment}/yaml")
+    public String getDeploymentYaml(@PathVariable String namespace, @PathVariable String deployment){
+        return deploymentService.getDeploymentYaml(namespace, deployment);
+
+    }
+
+    @PutMapping("{namespace}/deployment/{deployment}/yaml")
+    public void updateDeploymentYaml(@PathVariable String namespace, @PathVariable String deployment,
+                                       @RequestBody String yaml){
+        deploymentService.updateDeploymentYaml(namespace, deployment,yaml);
 
     }
 

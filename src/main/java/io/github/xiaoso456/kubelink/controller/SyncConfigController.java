@@ -1,15 +1,11 @@
 package io.github.xiaoso456.kubelink.controller;
 
 import cn.hutool.core.util.StrUtil;
-import io.github.xiaoso456.kubelink.domain.ClusterConfig;
 import io.github.xiaoso456.kubelink.domain.SyncConfig;
 import io.github.xiaoso456.kubelink.domain.SyncResponse;
 import io.github.xiaoso456.kubelink.enums.SyncType;
-import io.github.xiaoso456.kubelink.exception.LinkException;
 import io.github.xiaoso456.kubelink.exception.runtime.LinkRuntimeException;
-import io.github.xiaoso456.kubelink.service.ClusterConfigService;
 import io.github.xiaoso456.kubelink.service.SyncConfigService;
-import io.kubernetes.client.openapi.models.VersionInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

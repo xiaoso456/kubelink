@@ -5,17 +5,12 @@ import cn.hutool.core.util.StrUtil;
 import io.github.xiaoso456.kubelink.exception.runtime.LinkRuntimeException;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.apis.ApiextensionsV1Api;
-import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
-import static io.github.xiaoso456.kubelink.constant.CommonConstant.ALL_NAMESPACE;
 import static io.github.xiaoso456.kubelink.constant.CommonConstant.FIRST_CONTAINER;
+import static io.github.xiaoso456.kubelink.constant.CommonConstant.NULL;
 
 @Service
 public class PodService {
@@ -32,7 +27,7 @@ public class PodService {
 
         try {
             CoreV1Api.APIreadNamespacedPodLogRequest apiReadNamespacedPodLogRequest = coreV1Api.readNamespacedPodLog(pod, namespace);
-            if(StrUtil.isBlank(container) || container.equals(FIRST_CONTAINER)){
+            if(StrUtil.isBlank(container) || container.equals(FIRST_CONTAINER) || container.equals(NULL)){
                 apiReadNamespacedPodLogRequest.container(null);
             }else{
                 apiReadNamespacedPodLogRequest.container(container);

@@ -9,6 +9,7 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.*;
+import io.kubernetes.client.util.Yaml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -86,7 +87,7 @@ public class StatefulsetService {
 
     }
 
-    public List<V1Service> getStatefulsetServices(String namespace, String deploymentName){
+    public List<V1Service> getStatefulsetServices(String namespace, String statefulsetName){
         ApiClient apiClient = configManagementService.getApiClient();
 
         AppsV1Api appsV1Api = new AppsV1Api();
@@ -96,7 +97,7 @@ public class StatefulsetService {
         coreV1Api.setApiClient(apiClient);
 
         try {
-            V1StatefulSet v1StatefulSet = appsV1Api.readNamespacedStatefulSet(deploymentName, namespace).execute();
+            V1StatefulSet v1StatefulSet = appsV1Api.readNamespacedStatefulSet(statefulsetName, namespace).execute();
 
             Map<String, String> v1StatefulSetLabels= v1StatefulSet.getSpec().getTemplate().getMetadata().getLabels();
 
@@ -122,10 +123,43 @@ public class StatefulsetService {
         }
     }
 
+    public String getStatefulsetYaml(String namespace, String statefulsetName){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        try {
+            V1StatefulSet v1StatefulSet = appsV1Api.readNamespacedStatefulSet(statefulsetName, namespace).execute();
+            v1StatefulSet.getMetadata().setManagedFields(null);
+            v1StatefulSet.setStatus(null);
+            String yaml = Yaml.dump(v1StatefulSet);
+            return yaml;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
+    public void updateStatefulsetYaml(String namespace, String statefulsetName,String yaml){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        try {
+
+            V1StatefulSet v1StatefulSet = Yaml.loadAs(yaml, V1StatefulSet.class);
+            appsV1Api.replaceNamespacedStatefulSet(statefulsetName, namespace, v1StatefulSet).execute();
+
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
     private static final List<String> SUSPEND_COMMANDS = List.of("/bin/sh", "-c");
     private static final List<String> SUSPEND_ARGS= List.of("while true; do echo 'suspend looping...'; sleep 5; done");
 
-    public void suspendsSatefulset(String namespace,String deploymentName,String containerName){
+    public void suspendsSatefulset(String namespace,String statefulsetName,String containerName){
         ApiClient apiClient = configManagementService.getApiClient();
 
         AppsV1Api appsV1Api = new AppsV1Api();
@@ -133,7 +167,7 @@ public class StatefulsetService {
 
 
         try {
-            V1StatefulSet v1StatefulSet = appsV1Api.readNamespacedStatefulSet(deploymentName, namespace).execute();
+            V1StatefulSet v1StatefulSet = appsV1Api.readNamespacedStatefulSet(statefulsetName, namespace).execute();
             V1PodSpec spec = v1StatefulSet.getSpec().getTemplate().getSpec();
             List<V1Container> containers = spec.getContainers();
             if(StrUtil.isBlank(containerName) || FIRST_CONTAINER.equals(containerName)){
@@ -145,7 +179,7 @@ public class StatefulsetService {
                     container.setArgs(SUSPEND_ARGS);
                 });
             }
-            appsV1Api.replaceNamespacedStatefulSet(deploymentName, namespace, v1StatefulSet).execute();
+            appsV1Api.replaceNamespacedStatefulSet(statefulsetName, namespace, v1StatefulSet).execute();
 
         } catch (ApiException e) {
             throw new LinkRuntimeException(e);

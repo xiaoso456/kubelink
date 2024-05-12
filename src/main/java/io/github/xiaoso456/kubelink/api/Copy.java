@@ -12,12 +12,9 @@ limitations under the License.
 */
 package io.github.xiaoso456.kubelink.api;
 
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.extra.compress.CompressUtil;
 import cn.hutool.extra.compress.archiver.Archiver;
-import io.github.xiaoso456.kubelink.domain.SyncResponse;
-import io.github.xiaoso456.kubelink.exception.runtime.LinkRuntimeException;
 import io.kubernetes.client.Exec;
 import io.kubernetes.client.TreeNode;
 import io.kubernetes.client.openapi.ApiClient;
@@ -26,22 +23,6 @@ import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.util.Streams;
 import io.kubernetes.client.util.exception.CopyNotSupportedException;
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -54,6 +35,14 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class Copy extends Exec {
   private static final Logger log = LoggerFactory.getLogger(Copy.class);

@@ -1,28 +1,7 @@
 package io.github.xiaoso456.kubelink.service;
 
-import cn.hutool.core.date.StopWatch;
-import cn.hutool.core.io.watch.WatchMonitor;
-import cn.hutool.core.io.watch.Watcher;
-import cn.hutool.core.lang.UUID;
-import io.github.xiaoso456.kubelink.api.Copy;
-import io.github.xiaoso456.kubelink.domain.SyncConfig;
-import io.github.xiaoso456.kubelink.enums.SyncType;
-import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.util.exception.CopyNotSupportedException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.WatchEvent;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Slf4j
