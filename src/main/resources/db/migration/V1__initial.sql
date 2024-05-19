@@ -31,12 +31,3 @@ CREATE TABLE IF NOT EXISTS text_template (
 
 );
 
-CREATE TABLE IF NOT EXISTS text_template_instance (
-                                             id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                             template_id INTEGER,
-                                             templateVersion INTEGER,
-                                             name TEXT DEFAULT ('instance_name'),
-                                             content TEXT DEFAULT (''),
-                                             description TEXT DEFAULT ('')
-
-);
