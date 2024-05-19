@@ -10,7 +10,7 @@ import lombok.Data;
 import java.util.Map;
 
 @Data
-@TableName(value ="text_template")
+@TableName(value ="text_template",autoResultMap = true)
 public class TextTemplate {
 
 
