@@ -3,6 +3,7 @@ package io.github.xiaoso456.kubelink.controller;
 
 import io.github.xiaoso456.kubelink.service.PodService;
 import jakarta.websocket.*;
+import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,28 +25,30 @@ public class PodExecController {
 
     @OnMessage
     public void onMessage(String message) {
-      log.info("message:{}",message);
+      // log.info("message:{}",message);
     }
 
     @OnOpen
-    public void openOpen(Session session, EndpointConfig endpointConfig) {
+    public void openOpen(Session session, EndpointConfig endpointConfig,
+                         @PathParam("namespace") String namespace,
+                         @PathParam("pod") String pod,
+                         @PathParam("container") String container) {
         this.session = session;
-        log.info("session:{}",session);
+        log.info("[websocket] create new session on namespace [{}] pod [{}] container [{}]",namespace,pod,container);
+        // create k8s websocket,and write it
     }
 
 
     @OnClose
     public void onClose(CloseReason closeReason){
-        log.info("[websocket] 连接断开：id={}，reason={}", this.session.getId(),closeReason);
+        log.info("[websocket] connection close id [{}] reason=[{}]", this.session.getId(),closeReason);
     }
 
-    // 连接异常
     @OnError
     public void onError(Throwable throwable) throws IOException {
 
-        log.info("[websocket] 连接异常：id={}，throwable={}", this.session.getId(), throwable.getMessage());
+        log.info("[websocket] connection error id [{}] throwable [{}]", this.session.getId(), throwable.getMessage());
 
-        // 关闭连接。状态码为 UNEXPECTED_CONDITION（意料之外的异常）
         this.session.close(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, throwable.getMessage()));
     }
 }
