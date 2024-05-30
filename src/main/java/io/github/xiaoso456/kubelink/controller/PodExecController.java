@@ -2,6 +2,7 @@ package io.github.xiaoso456.kubelink.controller;
 
 
 import cn.hutool.core.util.ByteUtil;
+import cn.hutool.core.util.StrUtil;
 import io.github.xiaoso456.kubelink.service.ClusterConfigService;
 import io.github.xiaoso456.kubelink.service.ConfigManagementService;
 import io.github.xiaoso456.kubelink.service.PodService;
@@ -23,6 +24,9 @@ import org.springframework.web.bind.annotation.*;
 import java.io.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+
+import static io.github.xiaoso456.kubelink.constant.CommonConstant.FIRST_CONTAINER;
+import static io.github.xiaoso456.kubelink.constant.CommonConstant.NULL;
 
 @ServerEndpoint("/ws/namespace/{namespace}/pod/{pod}/container/{container}/exec")
 @Slf4j
@@ -64,7 +68,7 @@ public class PodExecController {
     }
 
     @Autowired
-    public static void setConfigManagementService(ConfigManagementService configManagementService) {
+    public void setConfigManagementService(ConfigManagementService configManagementService) {
         PodExecController.configManagementService = configManagementService;
     }
 
@@ -82,12 +86,17 @@ public class PodExecController {
                          @PathParam("pod") String pod,
                          @PathParam("container") String container) throws IOException, ApiException {
         log.info("[websocket] create new session on namespace [{}] pod [{}] container [{}]",namespace,pod,container);
+        String containerName = container;
+        if(StrUtil.isBlank(container) || container.equals(FIRST_CONTAINER) || container.equals(NULL)){
+            containerName = null;
+        }
         sessionIdSessionMap.put(session.getId(),session);
 
         ApiClient apiClient = configManagementService.getApiClient();
         apiClient.setVerifyingSsl(false);
         Exec exec = new Exec(apiClient);
-        Process process = exec.exec(namespace, pod, new String[]{"sh"}, container, true, true);
+
+        Process process = exec.exec(namespace, pod, new String[]{"sh"}, containerName, true, true);
 
         sessionIdProcessMap.put(session.getId(),process);
         websocketExecutorService.execute(() -> {
