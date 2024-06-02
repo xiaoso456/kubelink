@@ -17,6 +17,8 @@ public class SyncConfig {
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    private String name;
+
     private SyncType syncType;
 
     private Boolean autoSync;
