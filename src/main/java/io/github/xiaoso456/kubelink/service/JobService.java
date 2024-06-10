@@ -14,12 +14,10 @@ import io.kubernetes.client.util.Yaml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static io.github.xiaoso456.kubelink.constant.CommonConstant.ALL_NAMESPACE;
-import static io.github.xiaoso456.kubelink.constant.CommonConstant.FIRST_CONTAINER;
 
 @Service
 public class JobService {

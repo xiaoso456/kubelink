@@ -1,16 +1,11 @@
 package io.github.xiaoso456.kubelink.controller;
 
 import cn.hutool.core.util.StrUtil;
-import io.github.xiaoso456.kubelink.domain.SyncConfig;
-import io.github.xiaoso456.kubelink.domain.SyncResponse;
 import io.github.xiaoso456.kubelink.domain.TextTemplate;
-import io.github.xiaoso456.kubelink.enums.SyncType;
-import io.github.xiaoso456.kubelink.exception.runtime.LinkRuntimeException;
 import io.github.xiaoso456.kubelink.service.TextTemplateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 

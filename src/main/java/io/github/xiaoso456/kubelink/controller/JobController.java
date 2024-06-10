@@ -3,7 +3,6 @@ package io.github.xiaoso456.kubelink.controller;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.xiaoso456.kubelink.service.JobService;
-import io.github.xiaoso456.kubelink.service.JobService;
 import io.github.xiaoso456.kubelink.utils.KubeApiUtils;
 import io.kubernetes.client.openapi.models.V1Job;
 import io.kubernetes.client.openapi.models.V1Status;

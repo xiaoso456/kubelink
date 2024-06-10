@@ -56,7 +56,7 @@ public class DaemonsetController {
     }
     @GetMapping("{namespace}/daemonset/{daemonset}/yaml")
     public String getDaemonsetYaml(@PathVariable String namespace, @PathVariable String daemonset){
-        return daemonsetService.getDaemonfulsetYaml(namespace, daemonset);
+        return daemonsetService.getDaemonsetYaml(namespace, daemonset);
 
     }
 
