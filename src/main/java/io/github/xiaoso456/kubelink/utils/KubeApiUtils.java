@@ -48,6 +48,10 @@ public class KubeApiUtils {
                                     return objTemp.toJson();
                                 }else if(obj instanceof V1Job objTemp){
                                     return objTemp.toJson();
+                                }else if(obj instanceof V1ConfigMap objTemp){
+                                    return objTemp.toJson();
+                                }else if(obj instanceof V1Secret objTemp){
+                                    return objTemp.toJson();
                                 }else{
                                     throw new RuntimeException("not support type");
                                 }

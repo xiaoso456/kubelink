@@ -121,7 +121,7 @@ public class DaemonsetService {
 
     }
     
-    public String getDaemonfulsetYaml(String namespace, String daemonsetName){
+    public String getDaemonsetYaml(String namespace, String daemonsetName){
         ApiClient apiClient = configManagementService.getApiClient();
 
         AppsV1Api appsV1Api = new AppsV1Api();

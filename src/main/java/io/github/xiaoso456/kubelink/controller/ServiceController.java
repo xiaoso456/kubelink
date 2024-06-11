@@ -46,7 +46,7 @@ public class ServiceController {
 
 
     @PutMapping("{namespace}/service/{service}")
-    public String updateServiceType(@PathVariable String namespace,
+    public String updateService(@PathVariable String namespace,
                                     @PathVariable String service,
                                     @RequestBody V1Service v1Service){
 

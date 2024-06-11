@@ -2,8 +2,6 @@ package io.github.xiaoso456.kubelink.controller;
 
 
 import io.github.xiaoso456.kubelink.service.PodService;
-import io.kubernetes.client.openapi.models.V1Pod;
-import io.kubernetes.client.openapi.models.V1Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
