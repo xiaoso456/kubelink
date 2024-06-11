@@ -90,6 +90,21 @@ public class SecretService {
         }
     }
 
+    public V1Secret createSecret(String namespace, V1Secret v1Secret){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        CoreV1Api coreV1Api = new CoreV1Api();
+        coreV1Api.setApiClient(apiClient);
+
+        try {
+            V1Secret v1SecretNew = coreV1Api.createNamespacedSecret(namespace, v1Secret).execute();
+
+            return v1SecretNew;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
     public String getSecretYaml(String namespace, String secretName){
         ApiClient apiClient = configManagementService.getApiClient();
 

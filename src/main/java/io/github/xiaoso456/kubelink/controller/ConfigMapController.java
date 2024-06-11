@@ -44,6 +44,15 @@ public class ConfigMapController {
 
     }
 
+    @PostMapping("{namespace}/configmap")
+    public String createConfigMap(@PathVariable String namespace,
+                                    @RequestBody V1ConfigMap v1ConfigMap){
+
+        V1ConfigMap v1ConfigMapNew = configMapService.createConfigMap(namespace,v1ConfigMap);
+        return v1ConfigMapNew.toJson();
+
+    }
+
 
 
     @PutMapping("{namespace}/configmap/{configmap}")

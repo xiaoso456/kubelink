@@ -56,6 +56,15 @@ public class SecretController {
 
     }
 
+    @PostMapping("{namespace}/secret")
+    public String createSecret(@PathVariable String namespace,
+                                  @RequestBody V1Secret v1Secret){
+
+        V1Secret v1SecretNew = secretService.createSecret(namespace, v1Secret);
+        return v1SecretNew.toJson();
+
+    }
+
     @GetMapping("{namespace}/secret/{secret}/yaml")
     public String getSecretYaml(@PathVariable String namespace, @PathVariable String secret){
         return secretService.getSecretYaml(namespace, secret);

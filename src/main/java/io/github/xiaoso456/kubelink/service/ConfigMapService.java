@@ -90,6 +90,21 @@ public class ConfigMapService {
         }
     }
 
+    public V1ConfigMap createConfigMap(String namespace,V1ConfigMap v1ConfigMap){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        CoreV1Api coreV1Api = new CoreV1Api();
+        coreV1Api.setApiClient(apiClient);
+
+        try {
+            V1ConfigMap v1ConfigMapNew = coreV1Api.createNamespacedConfigMap(namespace, v1ConfigMap).execute();
+
+            return v1ConfigMapNew;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
     public String getConfigmapYaml(String namespace, String configmapName){
         ApiClient apiClient = configManagementService.getApiClient();
 
