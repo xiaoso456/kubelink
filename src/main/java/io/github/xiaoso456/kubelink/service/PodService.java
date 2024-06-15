@@ -43,6 +43,22 @@ public class PodService {
 
     }
 
+    public V1Pod getPod(String namespace,String pod){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        CoreV1Api coreV1Api = new CoreV1Api(apiClient);
+
+        try {
+            V1Pod v1Pod = coreV1Api.readNamespacedPod(pod, namespace).execute();
+
+            return v1Pod;
+
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+
+    }
+
     public V1Pod deletePod(String namespace,String pod){
         ApiClient apiClient = configManagementService.getApiClient();
 
