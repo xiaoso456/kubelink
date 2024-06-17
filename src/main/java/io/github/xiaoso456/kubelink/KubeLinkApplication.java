@@ -1,6 +1,7 @@
 package io.github.xiaoso456.kubelink;
 
 import lombok.extern.slf4j.Slf4j;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -11,6 +12,7 @@ import java.net.URISyntaxException;
 
 @SpringBootApplication
 @Slf4j
+@MapperScan("io.github.xiaoso456.kubelink.*")
 public class KubeLinkApplication implements CommandLineRunner {
 
     @Value("${server.port:15151}")
