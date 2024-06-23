@@ -44,6 +44,19 @@ public class ShareService {
         return sharedDatum;
     }
 
+    public SharedDatum exportTextTemplate(List<Long> ids) {
+        String tableName = "text_template";
+        SharedDatum sharedDatum = new SharedDatum();
+        sharedDatum.setName("text_template");
+        sharedDatum.setDescribe("");
+        List<Map<String, Object>> exportData = dynamicMapper.exportData(tableName,ids);
+        exportData.forEach(map -> {
+            map.remove("id");
+        });
+        sharedDatum.setTableData(Map.of(tableName, exportData));
+        return sharedDatum;
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public void importSharedDatum(SharedDatum sharedDatum) {
         log.info("import shared datum, name: {}, describe: {}",sharedDatum.getName(),sharedDatum.getDescribe());

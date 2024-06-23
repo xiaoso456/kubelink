@@ -2,7 +2,6 @@ package io.github.xiaoso456.kubelink.controller;
 
 
 import io.github.xiaoso456.kubelink.domain.share.SharedDatum;
-import io.github.xiaoso456.kubelink.mapper.DynamicMapper;
 import io.github.xiaoso456.kubelink.service.ShareService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +23,11 @@ public class ShareController {
     @GetMapping("/sync-config/export")
     public Object exportSyncConfig(@RequestParam(required = false) List<Long> ids){
         return shareService.exportSyncConfig(ids);
+    }
+
+    @GetMapping("/text-template/export")
+    public Object exportTemplate(@RequestParam(required = false) List<Long> ids){
+        return shareService.exportTextTemplate(ids);
     }
 
     @PostMapping("/common/import")
