@@ -18,8 +18,8 @@ KubeLink is a tool that allows you to view and edit kubernetes resources.
 # Road Map
 
 - [ ] Support view and edit basic kubernetes resources
-- [ ] Support share kubelink config using base64 or url
-- [ ] Support manage and link commands to the application console panel
+- [x] Support share kubelink config using base64 or url
+- [x] Support manage and link commands to the application console panel
 - [ ] Support connect to node's shell
 
 
