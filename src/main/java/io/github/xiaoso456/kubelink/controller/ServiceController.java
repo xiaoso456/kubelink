@@ -36,6 +36,19 @@ public class ServiceController {
 
     }
 
+    @GetMapping("{namespace}/service/{service}/yaml")
+    public String getServiceYaml(@PathVariable String namespace, @PathVariable String service){
+        return serviceService.getServiceYaml(namespace, service);
+    }
+
+    @PutMapping("{namespace}/service/{service}/yaml")
+    public void updateServiceYaml(@PathVariable String namespace, @PathVariable String service,
+                                     @RequestBody String yaml){
+        serviceService.updateServiceYaml(namespace, service, yaml);
+
+    }
+
+
     @DeleteMapping("{namespace}/service/{service}")
     public String deleteService(@PathVariable String namespace, @PathVariable String service){
         V1Service v1Service = serviceService.deleteService(namespace, service);

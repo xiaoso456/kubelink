@@ -5,9 +5,12 @@ import cn.hutool.core.util.StrUtil;
 import io.github.xiaoso456.kubelink.exception.runtime.LinkRuntimeException;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceList;
+import io.kubernetes.client.util.Yaml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -54,6 +57,42 @@ public class ServiceService {
         }
 
     }
+
+    public String getServiceYaml(String namespace,String service){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        CoreV1Api coreV1Api = new CoreV1Api();
+        coreV1Api.setApiClient(apiClient);
+
+        try {
+            V1Service v1Service = coreV1Api.readNamespacedService(service, namespace).execute();
+            v1Service.getMetadata().setManagedFields(null);
+
+            String yaml = Yaml.dump(v1Service);
+            return yaml;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+
+    }
+
+    public void updateServiceYaml(String namespace, String serviceName,String yaml){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        CoreV1Api coreV1Api = new CoreV1Api();
+        coreV1Api.setApiClient(apiClient);
+
+        try {
+
+            V1Service v1Service = Yaml.loadAs(yaml, V1Service.class);
+            coreV1Api.replaceNamespacedService(serviceName, namespace, v1Service).execute();
+
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
+
 
     public V1Service deleteService(String namespace, String serviceName){
         ApiClient apiClient = configManagementService.getApiClient();
