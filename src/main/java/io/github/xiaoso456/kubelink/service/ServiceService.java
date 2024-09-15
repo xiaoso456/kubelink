@@ -3,18 +3,18 @@ package io.github.xiaoso456.kubelink.service;
 
 import cn.hutool.core.util.StrUtil;
 import io.github.xiaoso456.kubelink.exception.runtime.LinkRuntimeException;
+import io.github.xiaoso456.kubelink.utils.KubeApiUtils;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1Deployment;
-import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.openapi.models.V1ServiceList;
+import io.kubernetes.client.openapi.models.*;
 import io.kubernetes.client.util.Yaml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 import static io.github.xiaoso456.kubelink.constant.CommonConstant.ALL_NAMESPACE;
 
@@ -70,6 +70,24 @@ public class ServiceService {
 
             String yaml = Yaml.dump(v1Service);
             return yaml;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+
+    }
+
+    public List<V1Pod> getServicePod(String namespace,String service){
+        V1Service v1Service = getService(namespace, service);
+        Map<String, String> selector = v1Service.getSpec().getSelector();
+
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        CoreV1Api coreV1Api = new CoreV1Api(apiClient);
+
+        try {
+            V1PodList v1PodList = coreV1Api.listNamespacedPod(namespace).labelSelector(KubeApiUtils.labelsMapToString(selector)).execute();
+            return v1PodList.getItems();
+
         } catch (ApiException e) {
             throw new LinkRuntimeException(e);
         }

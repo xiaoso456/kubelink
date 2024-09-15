@@ -4,6 +4,7 @@ package io.github.xiaoso456.kubelink.controller;
 import cn.hutool.core.util.StrUtil;
 import io.github.xiaoso456.kubelink.service.ServiceService;
 import io.github.xiaoso456.kubelink.utils.KubeApiUtils;
+import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -47,6 +48,14 @@ public class ServiceController {
         serviceService.updateServiceYaml(namespace, service, yaml);
 
     }
+
+    @GetMapping("{namespace}/service/{service}/pod")
+    public String getServicePods(@PathVariable String namespace, @PathVariable String service){
+        List<V1Pod> servicePod = serviceService.getServicePod(namespace, service);
+
+        return KubeApiUtils.toJsonString(servicePod);
+    }
+
 
 
     @DeleteMapping("{namespace}/service/{service}")
