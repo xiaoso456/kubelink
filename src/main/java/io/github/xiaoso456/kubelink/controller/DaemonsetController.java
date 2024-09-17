@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import io.github.xiaoso456.kubelink.service.DaemonsetService;
 import io.github.xiaoso456.kubelink.utils.KubeApiUtils;
 import io.kubernetes.client.openapi.models.V1DaemonSet;
+import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +42,16 @@ public class DaemonsetController {
     public String deleteDaemonset(@PathVariable String namespace, @PathVariable String daemonset){
         V1Status v1Status = daemonsetService.deleteDaemonset(namespace, daemonset);
         return v1Status.toJson();
+
+    }
+
+    @PutMapping("{namespace}/daemonset/{daemonset}")
+    public String updateDaemonset(@PathVariable String namespace,
+                                   @PathVariable String daemonset,
+                                   @RequestBody V1DaemonSet v1DaemonSet){
+
+        V1DaemonSet daemonsetNew = daemonsetService.updateDaemonset(namespace, daemonset, v1DaemonSet);
+        return daemonsetNew.toJson();
 
     }
 

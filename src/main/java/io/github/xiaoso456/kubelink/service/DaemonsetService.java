@@ -171,6 +171,26 @@ public class DaemonsetService {
         }
     }
 
+    public V1DaemonSet updateDaemonset(String namespace, String daemonsetName,V1DaemonSet v1DaemonSet){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        try {
+            // TODO use patch instead of put
+            V1DaemonSet daemonSetOld = appsV1Api.readNamespacedDaemonSet(daemonsetName, namespace).execute();
+            daemonSetOld.setMetadata(v1DaemonSet.getMetadata());
+            daemonSetOld.setSpec(v1DaemonSet.getSpec());
+            daemonSetOld.setStatus(v1DaemonSet.getStatus());
+            V1DaemonSet daemonSetNew = appsV1Api.replaceNamespacedDaemonSet(daemonsetName, namespace, daemonSetOld).execute();
+            return daemonSetNew;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
+
     private static final List<String> SUSPEND_COMMANDS = List.of("/bin/sh", "-c");
     private static final List<String> SUSPEND_ARGS= List.of("while true; do echo 'suspend looping...'; sleep 5; done");
 

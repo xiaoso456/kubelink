@@ -4,6 +4,7 @@ package io.github.xiaoso456.kubelink.controller;
 import cn.hutool.core.util.StrUtil;
 import io.github.xiaoso456.kubelink.service.JobService;
 import io.github.xiaoso456.kubelink.utils.KubeApiUtils;
+import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Job;
 import io.kubernetes.client.openapi.models.V1Status;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,16 @@ public class JobController {
     public String deleteJob(@PathVariable String namespace, @PathVariable String job){
         V1Status v1Status = jobService.deleteJob(namespace, job);
         return v1Status.toJson();
+
+    }
+
+    @PutMapping("{namespace}/job/{job}")
+    public String updateJob(@PathVariable String namespace,
+                                   @PathVariable String job,
+                                   @RequestBody V1Job v1Job){
+
+        V1Job jobNew = jobService.updateJob(namespace, job, v1Job);
+        return jobNew.toJson();
 
     }
 

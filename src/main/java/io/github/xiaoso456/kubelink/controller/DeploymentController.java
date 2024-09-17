@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import io.github.xiaoso456.kubelink.service.DeploymentService;
 import io.github.xiaoso456.kubelink.utils.KubeApiUtils;
 import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +37,18 @@ public class DeploymentController {
         return v1Deployment.toJson();
 
     }
+
+
+    @PutMapping("{namespace}/deployment/{deployment}")
+    public String updateDeployment(@PathVariable String namespace,
+                                @PathVariable String deployment,
+                                @RequestBody V1Deployment v1Deployment){
+
+        V1Deployment deploymentNew = deploymentService.updateDeployment(namespace, deployment, v1Deployment);
+        return deploymentNew.toJson();
+
+    }
+
     @DeleteMapping("{namespace}/deployment/{deployment}")
     public String deleteDeployment(@PathVariable String namespace, @PathVariable String deployment){
         V1Status v1Status = deploymentService.deleteDeployment(namespace, deployment);

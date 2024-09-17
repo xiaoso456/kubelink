@@ -156,7 +156,7 @@ public class StatefulsetService {
         }
     }
 
-    public V1Status deleteStatefulset(String namespace, String statefulstName){
+    public V1Status deleteStatefulset(String namespace, String statefulsetName){
         ApiClient apiClient = configManagementService.getApiClient();
 
         AppsV1Api appsV1Api = new AppsV1Api();
@@ -166,12 +166,32 @@ public class StatefulsetService {
         coreV1Api.setApiClient(apiClient);
 
         try {
-            V1Status v1Status = appsV1Api.deleteNamespacedStatefulSet(statefulstName, namespace).execute();
+            V1Status v1Status = appsV1Api.deleteNamespacedStatefulSet(statefulsetName, namespace).execute();
             return v1Status;
         } catch (ApiException e) {
             throw new LinkRuntimeException(e);
         }
     }
+
+    public V1StatefulSet updateStatefulset(String namespace, String statefulsetName,V1StatefulSet v1StatefulSet){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        try {
+            // TODO use patch instead of put
+            V1StatefulSet statefulSetOld = appsV1Api.readNamespacedStatefulSet(statefulsetName, namespace).execute();
+            statefulSetOld.setMetadata(v1StatefulSet.getMetadata());
+            statefulSetOld.setSpec(v1StatefulSet.getSpec());
+            statefulSetOld.setStatus(v1StatefulSet.getStatus());
+            V1StatefulSet statefulSetNew = appsV1Api.replaceNamespacedStatefulSet(statefulsetName, namespace, statefulSetOld).execute();
+            return statefulSetNew;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
 
     private static final List<String> SUSPEND_COMMANDS = List.of("/bin/sh", "-c");
     private static final List<String> SUSPEND_ARGS= List.of("while true; do echo 'suspend looping...'; sleep 5; done");

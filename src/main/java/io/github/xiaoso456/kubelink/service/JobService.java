@@ -8,6 +8,7 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.BatchV1Api;
+import io.kubernetes.client.openapi.apis.CoreApi;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.*;
 import io.kubernetes.client.util.Yaml;
@@ -171,6 +172,27 @@ public class JobService {
         try {
             V1Status v1Status = batchV1Api.deleteNamespacedJob(jobName, namespace).execute();
             return v1Status;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
+    public V1Job updateJob(String namespace, String jobName,V1Job v1Job){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+
+        BatchV1Api batchV1Api = new BatchV1Api();
+        batchV1Api.setApiClient(apiClient);
+
+
+        try {
+            // TODO use patch instead of put
+            V1Job jobOld = batchV1Api.readNamespacedJob(jobName, namespace).execute();
+            jobOld.setMetadata(v1Job.getMetadata());
+            jobOld.setSpec(v1Job.getSpec());
+            jobOld.setStatus(v1Job.getStatus());
+            V1Job jobNew = batchV1Api.replaceNamespacedJob(jobName, namespace, jobOld).execute();
+            return jobNew;
         } catch (ApiException e) {
             throw new LinkRuntimeException(e);
         }

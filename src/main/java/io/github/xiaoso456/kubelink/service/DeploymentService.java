@@ -203,6 +203,25 @@ public class DeploymentService {
         }
     }
 
+    public V1Deployment updateDeployment(String namespace, String deploymentName,V1Deployment v1Deployment){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        try {
+            // TODO use patch instead of put
+            V1Deployment deploymentOld = appsV1Api.readNamespacedDeployment(deploymentName, namespace).execute();
+            deploymentOld.setMetadata(v1Deployment.getMetadata());
+            deploymentOld.setSpec(v1Deployment.getSpec());
+            deploymentOld.setStatus(v1Deployment.getStatus());
+            V1Deployment deploymentNew = appsV1Api.replaceNamespacedDeployment(deploymentName, namespace, deploymentOld).execute();
+            return deploymentNew;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
     // public void showDeploymentHistory(String namespace,String deploymentName){
     //     ApiClient apiClient = configManagementService.getApiClient();
     //
