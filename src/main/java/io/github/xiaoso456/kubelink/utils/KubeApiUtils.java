@@ -52,7 +52,9 @@ public class KubeApiUtils {
                                     return objTemp.toJson();
                                 }else if(obj instanceof V1Secret objTemp){
                                     return objTemp.toJson();
-                                }else{
+                                }else if(obj instanceof CoreV1Event objTemp){
+                                    return objTemp.toJson();
+                                }else {
                                     throw new RuntimeException("not support type");
                                 }
                             } )
