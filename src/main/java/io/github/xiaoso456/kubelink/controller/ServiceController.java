@@ -37,6 +37,12 @@ public class ServiceController {
 
     }
 
+    @PostMapping("{namespace}/service")
+    public String createService(@PathVariable String namespace, @RequestBody V1Service v1Service){
+        V1Service v1ServiceNew = serviceService.createService(namespace, v1Service);
+        return v1ServiceNew.toJson();
+    }
+
     @GetMapping("{namespace}/service/{service}/yaml")
     public String getServiceYaml(@PathVariable String namespace, @PathVariable String service){
         return serviceService.getServiceYaml(namespace, service);

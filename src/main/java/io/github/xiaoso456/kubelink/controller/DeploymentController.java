@@ -38,6 +38,14 @@ public class DeploymentController {
 
     }
 
+    @PostMapping("{namespace}/deployment")
+    public String createDeployment(@PathVariable String namespace, @RequestBody V1Deployment v1Deployment){
+
+        V1Deployment deploymentNew = deploymentService.createDeployment(namespace, v1Deployment);
+        return deploymentNew.toJson();
+
+    }
+
 
     @PutMapping("{namespace}/deployment/{deployment}")
     public String updateDeployment(@PathVariable String namespace,

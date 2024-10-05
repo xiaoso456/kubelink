@@ -1,6 +1,7 @@
 package io.github.xiaoso456.kubelink.controller;
 
 import io.github.xiaoso456.kubelink.domain.ClusterConfig;
+import io.github.xiaoso456.kubelink.domain.ConnectionStatus;
 import io.github.xiaoso456.kubelink.exception.LinkException;
 import io.github.xiaoso456.kubelink.service.ClusterConfigService;
 import io.github.xiaoso456.kubelink.service.ConfigManagementService;
@@ -32,6 +33,11 @@ public class ClusterConfigController {
     @GetMapping("/list")
     public List<ClusterConfig> list() {
         return clusterConfigService.list();
+    }
+
+    @GetMapping("/current/status")
+    public ConnectionStatus getCurrentConnectionStatus() {
+        return configManagementService.getCurrentConnectionStatus();
     }
 
     @PostMapping

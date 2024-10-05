@@ -223,4 +223,19 @@ public class DaemonsetService {
 
     }
 
+    // createDaemonset
+    public V1DaemonSet createDaemonset(String namespace,V1DaemonSet v1DaemonSet){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        try {
+            V1DaemonSet daemonSetNew = appsV1Api.createNamespacedDaemonSet(namespace, v1DaemonSet).execute();
+            return daemonSetNew;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
 }

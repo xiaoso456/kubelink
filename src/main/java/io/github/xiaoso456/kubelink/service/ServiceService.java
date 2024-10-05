@@ -145,4 +145,18 @@ public class ServiceService {
         }
     }
 
+    public V1Service createService(String namespace,V1Service v1Service){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        CoreV1Api coreV1Api = new CoreV1Api();
+        coreV1Api.setApiClient(apiClient);
+
+        try {
+            V1Service v1ServiceNew = coreV1Api.createNamespacedService(namespace, v1Service).execute();
+            return v1ServiceNew;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
 }

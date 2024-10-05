@@ -55,6 +55,14 @@ public class StatefulsetController {
 
     }
 
+    @PostMapping("{namespace}/statefulset")
+    public String createStatefulset(@PathVariable String namespace, @RequestBody V1StatefulSet v1StatefulSet){
+
+        V1StatefulSet statefulset = statefulsetService.createStatefulset(namespace, v1StatefulSet);
+        return statefulset.toJson();
+
+    }
+
     @GetMapping("{namespace}/statefulset/{statefulset}/pod/list")
     public String getStatefulsetPods(@PathVariable String namespace, @PathVariable String statefulset){
         return KubeApiUtils.toJsonString(statefulsetService.getStatefulsetPods(namespace, statefulset));

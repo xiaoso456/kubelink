@@ -55,6 +55,12 @@ public class DaemonsetController {
 
     }
 
+    @PostMapping("{namespace}/daemonset")
+    public String createDaemonset(@PathVariable String namespace, @RequestBody V1DaemonSet v1DaemonSet){
+        V1DaemonSet daemonsetNew = daemonsetService.createDaemonset(namespace, v1DaemonSet);
+        return daemonsetNew.toJson();
+    }
+
     @GetMapping("{namespace}/daemonset/{daemonset}/pod/list")
     public String getDaemonsetPods(@PathVariable String namespace, @PathVariable String daemonset){
         return KubeApiUtils.toJsonString(daemonsetService.getDaemonsetPods(namespace, daemonset));

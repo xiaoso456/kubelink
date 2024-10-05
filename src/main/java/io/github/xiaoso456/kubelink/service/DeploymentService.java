@@ -222,6 +222,21 @@ public class DeploymentService {
         }
     }
 
+
+    public V1Deployment createDeployment(String namespace,V1Deployment v1Deployment){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        try {
+            V1Deployment deploymentNew = appsV1Api.createNamespacedDeployment(namespace, v1Deployment).execute();
+            return deploymentNew;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
     // public void showDeploymentHistory(String namespace,String deploymentName){
     //     ApiClient apiClient = configManagementService.getApiClient();
     //

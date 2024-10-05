@@ -224,4 +224,18 @@ public class StatefulsetService {
 
     }
 
+    public V1StatefulSet createStatefulset(String namespace,V1StatefulSet v1StatefulSet){
+        ApiClient apiClient = configManagementService.getApiClient();
+
+        AppsV1Api appsV1Api = new AppsV1Api();
+        appsV1Api.setApiClient(apiClient);
+
+        try {
+            V1StatefulSet statefulSetNew = appsV1Api.createNamespacedStatefulSet(namespace, v1StatefulSet).execute();
+            return statefulSetNew;
+        } catch (ApiException e) {
+            throw new LinkRuntimeException(e);
+        }
+    }
+
 }

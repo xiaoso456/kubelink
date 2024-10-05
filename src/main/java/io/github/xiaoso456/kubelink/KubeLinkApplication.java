@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -13,6 +15,7 @@ import java.net.URISyntaxException;
 @SpringBootApplication
 @Slf4j
 @MapperScan("io.github.xiaoso456.kubelink.*")
+@EnableScheduling
 public class KubeLinkApplication implements CommandLineRunner {
 
     @Value("${server.port:15151}")
