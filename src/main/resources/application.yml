@@ -17,6 +17,9 @@ spring:
         size: 4
 server:
   port: 15151
+  servlet:
+    encoding:
+      charset: UTF-8
 springdoc:
   api-docs:
     enabled: true

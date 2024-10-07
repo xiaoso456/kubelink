@@ -2,29 +2,38 @@ package io.github.xiaoso456.kubelink.service;
 
 
 import cn.hutool.core.date.StopWatch;
+import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.io.watch.WatchMonitor;
 import cn.hutool.core.io.watch.Watcher;
 import cn.hutool.core.lang.UUID;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.github.xiaoso456.kubelink.api.Copy;
+import io.github.xiaoso456.kubelink.constant.CommonConstant;
 import io.github.xiaoso456.kubelink.domain.SyncConfig;
 import io.github.xiaoso456.kubelink.domain.SyncResponse;
+import io.github.xiaoso456.kubelink.domain.file.FileInfo;
 import io.github.xiaoso456.kubelink.enums.SyncType;
 import io.github.xiaoso456.kubelink.exception.runtime.LinkRuntimeException;
 import io.github.xiaoso456.kubelink.mapper.SyncConfigMapper;
 import io.kubernetes.client.Exec;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.util.exception.CopyNotSupportedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -196,6 +205,60 @@ public class SyncConfigService extends ServiceImpl<SyncConfigMapper, SyncConfig>
                 throw new LinkRuntimeException(e);
             }
         }
+    }
+
+    public List<FileInfo> getPodPath(String namespace,String pod,String container,String path){
+
+        ApiClient apiClient = configManagementService.getApiClient();
+        apiClient.setVerifyingSsl(false);
+        CoreV1Api coreV1Api = new CoreV1Api();
+        coreV1Api.setApiClient(apiClient);
+
+        Exec exec = new Exec();
+        exec.setApiClient(apiClient);
+        try{
+            Process process;
+            if(CommonConstant.NULL.equals(container) || CommonConstant.FIRST_CONTAINER.equals(container)){
+                process = exec.exec(namespace, pod, new String[]{"ls", "-l", path}, true, false);
+            }else{
+                process = exec.exec(namespace, pod, new String[]{"ls", "-l", path}, container, true, false);
+            }
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            List<FileInfo> fileInfos = new ArrayList<>();
+            while ((line = bufferedReader.readLine()) != null) {
+                String[] parts = line.split("\\s+");
+                if (parts.length >= 9) {
+                    boolean isDir = parts[0].charAt(0) == 'd';
+                    String name;
+
+                    if (parts[0].startsWith("l")) {
+                        name = parts[parts.length-3];
+                    }else{
+                        name = parts[parts.length-1];
+                    }
+
+                    FileInfo fileInfo = FileInfo.builder()
+                            .name(name)
+                            .dir(isDir)
+                            .build();
+                    fileInfos.add(fileInfo);
+                }
+            }
+
+            process.waitFor();
+            process.destroy();
+            return fileInfos;
+
+
+        } catch (Exception e) {
+            throw new LinkRuntimeException(e);
+        }
+
+
+
+
+
     }
 
 }

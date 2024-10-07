@@ -3,14 +3,18 @@ package io.github.xiaoso456.kubelink.controller;
 import cn.hutool.core.util.StrUtil;
 import io.github.xiaoso456.kubelink.domain.SyncConfig;
 import io.github.xiaoso456.kubelink.domain.SyncResponse;
+import io.github.xiaoso456.kubelink.domain.file.FileInfo;
 import io.github.xiaoso456.kubelink.enums.SyncType;
 import io.github.xiaoso456.kubelink.exception.runtime.LinkRuntimeException;
 import io.github.xiaoso456.kubelink.service.SyncConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/sync")
@@ -70,6 +74,43 @@ public class SyncConfigController {
     public List<SyncType> listSyncType(){
         return Arrays.asList(SyncType.values());
     }
+
+
+    @PostMapping("/namespace/{namespace}/pod/{pod}/container/{container}")
+    public void active(@PathVariable String namespace, @PathVariable String pod, @PathVariable String container) {
+
+    }
+
+    @PostMapping("/local/path")
+    public List<FileInfo> getLocalPath(@RequestBody String path){
+
+        List<FileInfo> result = new ArrayList<>();
+        File[] files;
+        if("/".equals(path)){
+            files = File.listRoots();
+        }else{
+            files = new File(path).listFiles();
+        }
+        if (files == null){
+            return result;
+        }
+        for(File file:files){
+            FileInfo fileInfo = FileInfo.builder()
+                    .name("".equals(file.getName())?file.getPath():file.getName())
+                    .dir(file.isDirectory())
+                    .build();
+            result.add(fileInfo);
+        }
+        return result;
+
+    }
+
+    @PostMapping("/namespace/{namespace}/pod/{pod}/container/{container}/path")
+    public List<FileInfo> getRemotePath(@PathVariable String namespace,@PathVariable String pod,@PathVariable String container,@RequestBody String path){
+        return syncConfigService.getPodPath(namespace,pod,container,path);
+    }
+
+
 
 
 
