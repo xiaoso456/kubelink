@@ -7,4 +7,6 @@ public class CommonConstant {
 
     public static final String FIRST_CONTAINER = "_first";
 
+    public static final String ROOT_FLAG = "#root#";
+
 }

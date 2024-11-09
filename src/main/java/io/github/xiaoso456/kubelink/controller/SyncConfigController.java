@@ -1,6 +1,7 @@
 package io.github.xiaoso456.kubelink.controller;
 
 import cn.hutool.core.util.StrUtil;
+import io.github.xiaoso456.kubelink.constant.CommonConstant;
 import io.github.xiaoso456.kubelink.domain.SyncConfig;
 import io.github.xiaoso456.kubelink.domain.SyncResponse;
 import io.github.xiaoso456.kubelink.domain.file.FileInfo;
@@ -86,11 +87,12 @@ public class SyncConfigController {
 
         List<FileInfo> result = new ArrayList<>();
         File[] files;
-        if("/".equals(path)){
+        if(CommonConstant.ROOT_FLAG.equals(path)){
             files = File.listRoots();
         }else{
             files = new File(path).listFiles();
         }
+
         if (files == null){
             return result;
         }

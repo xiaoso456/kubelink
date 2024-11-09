@@ -208,7 +208,9 @@ public class SyncConfigService extends ServiceImpl<SyncConfigMapper, SyncConfig>
     }
 
     public List<FileInfo> getPodPath(String namespace,String pod,String container,String path){
-
+        if(CommonConstant.ROOT_FLAG.equals(path)){
+            path = "/";
+        }
         ApiClient apiClient = configManagementService.getApiClient();
         apiClient.setVerifyingSsl(false);
         CoreV1Api coreV1Api = new CoreV1Api();
